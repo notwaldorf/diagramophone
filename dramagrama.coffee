@@ -51,15 +51,22 @@ class Parser
 		@basicExpression = ///
 		  (.*)->(.*):(.*)
 		///
+		@basicExpressionNoMessage = ///
+		  (.*)->(.*)
+		///
 
 		# first --> second : message
 		@dashedExpression = ///
 		  (.*)-->(.*):(.*)
 		///
+		@dashedExpressionNoMessage = ///
+		  (.*)-->(.*)
+		///
 
 	parse: (text) ->
 		allTheLines = text.split("\n")
 		parsedLines = []
+
 
 		# TODO: try to use things = (x for x in list) instead
 		# and maybe less horrid regexp code
@@ -72,14 +79,25 @@ class Parser
 		return parsedLines
 
 	parseBasicExpression: (line) ->
-		[first, second, message] = line.match(@basicExpression)[1..3]
+		debugger
+		if line.indexOf(":") != -1
+			[first, second, message] = line.match(@basicExpression)[1..3]
+		else
+			[first, second] = line.match(@basicExpressionNoMessage)[1..2]
+			message = ""
+
 		return {first: first.trim(),
 		second:second.trim(),
 		message:message.trim(),
 		arrowStyle:""}
 
 	parseDashedExpression: (line) ->
-		[first, second, message] = line.match(@dashedExpression)[1..3]
+		if line.indexOf(":") != -1
+			[first, second, message] = line.match(@dashedExpression)[1..3]
+		else 
+			[first, second] = line.match(@dashedExpressionNoMessage)[1..2]
+			message = ""
+
 		return {first: first.trim(),
 		second:second.trim(),
 		message:message.trim(),
