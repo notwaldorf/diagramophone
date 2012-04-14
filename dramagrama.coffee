@@ -37,7 +37,12 @@ class Controller
 				blocksThatIHaveDrawn[parent] = parentBlock
 
 			for child in children	# note, this is in parsed input first/last/message format
-				childBlock = @drawer.connectToRectangle(paper, parentBlock, "down", child.second, child.message)
+				childBlock = @drawer.connectToRectangle(paper, 
+							parentBlock, 
+							"down", 
+							child.second, 
+							child.message,
+							child.arrowStyle)
 				blocksThatIHaveDrawn[child.second] = childBlock
 		return null
 class Parser
@@ -47,18 +52,39 @@ class Parser
 		  (.*)->(.*):(.*)
 		///
 
+		# first --> second : message
+		@dashedExpression = ///
+		  (.*)-->(.*):(.*)
+		///
+
 	parse: (text) ->
 		allTheLines = text.split("\n")
 		parsedLines = []
 
 		# TODO: try to use things = (x for x in list) instead
+		# and maybe less horrid regexp code
 		for line in allTheLines	
-			try 
-				[first, second, message] = line.match(@basicExpression)[1..3]
-				parsedLines.push {first: first.trim(), second:second.trim(), message:message.trim()}	
-			catch e
-
+			if line.indexOf("-->") != -1
+				parsedLines.push(@parseDashedExpression line)
+			else if line.indexOf("->") != -1
+				parsedLines.push(@parseBasicExpression line)
+			
 		return parsedLines
+
+	parseBasicExpression: (line) ->
+		[first, second, message] = line.match(@basicExpression)[1..3]
+		return {first: first.trim(),
+		second:second.trim(),
+		message:message.trim(),
+		arrowStyle:""}
+
+	parseDashedExpression: (line) ->
+		[first, second, message] = line.match(@dashedExpression)[1..3]
+		return {first: first.trim(),
+		second:second.trim(),
+		message:message.trim(),
+		arrowStyle:"- "}
+
 
 		
 class Drawer
@@ -80,7 +106,7 @@ class Drawer
 			}
 			)
 
-	connectToRectangle:(paper, previousRectangle, direction, text, arrowMessage) ->
+	connectToRectangle:(paper, previousRectangle, direction, text, arrowMessage, arrowStyle) ->
 		x = previousRectangle.top.x
 		y = previousRectangle.top.y + @rectangleHeight + @rectanglePadding
 		topPoint = new Point x, y
@@ -89,11 +115,13 @@ class Drawer
 		connector = previousRectangle.getConnectorForDirection direction
 		myConnector = thisRectangle.getConnectorForDirection "up"
 
-		@drawLine paper, connector, myConnector
+		@drawLine paper, connector, myConnector, arrowStyle
 		return thisRectangle
 
-	drawLine: (paper, point1, point2) ->
+	drawLine: (paper, point1, point2, arrowStyle) ->
 		paper.path("M{0},{1}L{2},{3}", point1.x, point1.y, point2.x, point2.y)
+		.attr({"stroke-dasharray": arrowStyle})
+		# stroke: "red"
 
 class Rectangle
 	constructor: (@top, @width, @height) ->

@@ -57,8 +57,9 @@ sampleText = """
 // arrow messages are totes not drawn
 block 1 -> block 2 : arrowMsg1
 block 2 -> block 3 : arrowMsg2
-block 4 -> block 5 : arrowMsg3
-block 3 -> block 6 : arrowMsg4
+// look, dashed lines!
+block 4 --> block 5 : arrowMsg3
+block 3 --> block 6 : arrowMsg4
 """
 textarea.value = sampleText
 btn.addEventListener 'click', => @controller.makeItGo(textarea.value, paper)
