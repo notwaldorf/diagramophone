@@ -79,7 +79,6 @@ class Parser
 		return parsedLines
 
 	parseBasicExpression: (line) ->
-		debugger
 		if line.indexOf(":") != -1
 			[first, second, message] = line.match(@basicExpression)[1..3]
 		else
@@ -121,8 +120,7 @@ class Drawer
 		paper.text(x, y, text).attr(
 			{"font-size": "13px", 
 			"font-family":"'Shadows Into Light Two', sans-serif"
-			}
-			)
+			})
 
 	connectToRectangle:(paper, previousRectangle, direction, text, arrowMessage, arrowStyle) ->
 		x = previousRectangle.top.x
@@ -133,12 +131,20 @@ class Drawer
 		connector = previousRectangle.getConnectorForDirection direction
 		myConnector = thisRectangle.getConnectorForDirection "up"
 
-		@drawLine paper, connector, myConnector, arrowStyle
+		@drawLine paper, connector, myConnector, arrowMessage, arrowStyle
 		return thisRectangle
 
-	drawLine: (paper, point1, point2, arrowStyle) ->
+	drawLine: (paper, point1, point2, arrowMessage, arrowStyle) ->
 		paper.path("M{0},{1}L{2},{3}", point1.x, point1.y, point2.x, point2.y)
 		.attr({"stroke-dasharray": arrowStyle})
+
+		return unless arrowMessage
+		midpoint = point1.y + (point2.y - point1.y)/2
+		paper.text(point1.x + 5, midpoint, arrowMessage).attr(
+			{"font-size": "12px", 
+			"font-family":"'Shadows Into Light Two', sans-serif",
+			"text-anchor":"start"})
+
 		# stroke: "red"
 
 class Rectangle
