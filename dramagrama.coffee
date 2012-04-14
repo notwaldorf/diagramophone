@@ -17,6 +17,8 @@ class Controller
 				allTheBlockPairs[blockPair.first] = [blockPair]
 
 		@drawer = new Drawer
+		paper.clear()
+
 		startPoint = new Point 50, 10;
 
 		# keep track of all the blocks that we've drawn
