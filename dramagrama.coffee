@@ -3,28 +3,62 @@ class Controller
 		@parser = new Parser
 		return unless inputText
 
-		parsedText = @parser.parse inputText
-		return unless parsedText
-		
+		parsedLines = @parser.parse inputText
+		return unless parsedLines
+
+		# create a map that holds all the children of each block
+		# we need this so that we can properly space them
+		allTheBlockPairs = {}
+
+		for blockPair in parsedLines
+			if allTheBlockPairs[blockPair.first]
+				allTheBlockPairs[blockPair.first].push blockPair
+			else
+				allTheBlockPairs[blockPair.first] = [blockPair]
+
 		@drawer = new Drawer
-		startPoint = new Point 100, 10;
+		startPoint = new Point 50, 10;
 
-		block1 = @drawer.drawRectangle(paper, startPoint, parsedText.first)
-		block2 = @drawer.connectToRectangle(paper, block1, "down", parsedText.second, parsedText.message)
-		
+		# keep track of all the blocks that we've drawn
+		# so that we can link blocks even if they haven't
+		# been typed in order
+		blocksThatIHaveDrawn = {}
+		console.log(allTheBlockPairs)
+	
+		for parent, children of allTheBlockPairs
+			# if i've drawn this block before, start from that rectangle
+			if blocksThatIHaveDrawn[parent]
+				parentBlock = blocksThatIHaveDrawn[parent]
+			else
+				parentBlock = @drawer.drawRectangle(paper, startPoint, parent)
+				startPoint.x += @drawer.rectangleWidth + 20
+				blocksThatIHaveDrawn[parent] = parentBlock
+
+			for child in children	# note, this is in parsed input first/last/message format
+				childBlock = @drawer.connectToRectangle(paper, parentBlock, "down", child.second, child.message)
+				blocksThatIHaveDrawn[child.second] = childBlock
+		return null
 class Parser
-	parse: (text) ->
+	constructor: ->
 		# first -> second : message
-		basicBlock = ///
+		@basicExpression = ///
 		  (.*)->(.*):(.*)
-		/// 
-		try 
-			[first, second, message] = text.match(basicBlock)[1..3]
-			return {first: first.trim(), second:second.trim(), message:message.trim()}	
-		catch e
-			return null
-		
+		///
 
+	parse: (text) ->
+		allTheLines = text.split("\n")
+		parsedLines = []
+
+		# TODO: try to use things = (x for x in list) instead
+		for line in allTheLines	
+			try 
+				[first, second, message] = line.match(@basicExpression)[1..3]
+				parsedLines.push {first: first.trim(), second:second.trim(), message:message.trim()}	
+			catch e
+
+		return parsedLines
+
+		
 class Drawer
 	constructor: ->
 		@rectangleWidth = 100
@@ -34,12 +68,14 @@ class Drawer
 	drawRectangle: (paper, point, text) ->
 		paper.rect(point.x, point.y, @rectangleWidth, @rectangleHeight).attr({"fill":"white"})
 		@drawText(paper, point.x + @rectangleWidth/2, point.y + @rectangleHeight/2, text)	
-		return new Rectangle point, @rectangleWidth, @rectangleHeight
+		clonedPoint = new Point point.x,point.y
+		return new Rectangle clonedPoint, @rectangleWidth, @rectangleHeight
 
 	drawText: (paper, x, y, text) ->
 		paper.text(x, y, text).attr(
 			{"font-size": "13px", 
-			"font-family":"'Shadows Into Light Two', sans-serif"}
+			"font-family":"'Shadows Into Light Two', sans-serif"
+			}
 			)
 
 	connectToRectangle:(paper, previousRectangle, direction, text, arrowMessage) ->

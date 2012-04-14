@@ -53,7 +53,12 @@ textarea = document.getElementById("textarea")
 paper = Raphael "canvas", 400, 400
 
 sampleText = """
-block 1 -> block 2 : message
+// invalid syntax should be ignored and act as comments
+// arrow messages are totes not drawn
+block 1 -> block 2 : arrowMsg1
+block 2 -> block 3 : arrowMsg2
+block 4 -> block 5 : arrowMsg3
+block 3 -> block 6 : arrowMsg4
 """
 textarea.value = sampleText
 btn.addEventListener 'click', => @controller.makeItGo(textarea.value, paper)
