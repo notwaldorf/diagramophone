@@ -1,0 +1,101 @@
+@backgroundGrey: #eee;
+
+html {
+  background-color: @backgroundGrey;
+  padding-left: 20px;
+  padding-right: 20px;
+}
+body {
+	padding-left: 20px;
+  	padding-right: 20px;
+  	background-color: transparent;
+}
+
+/* ===============================
+ *  Copy
+ * =============================== */
+.hero-unit {
+  margin: 0;
+  padding: 0;
+  background-color: transparent;
+  margin-top: 20px;
+  margin-bottom: 40px;
+  text-shadow: white 0px 2px 0px;
+  overflow: hidden;
+}
+.toptitle {
+  float: left;
+  font-size: 35px;
+  font-weight: bold;
+  margin-top: 8px;
+  margin-left: 10px;
+}
+
+.subtitle {
+  font-size: 12px;
+  font-weight: normal;
+  letter-spacing:1px;
+  padding: 0;
+  margin: 0;
+}
+
+.title {
+  font-family: 'Yanone Kaffeesatz', 'Helvetica Neue', Helvetica, Arial, sans-serif, sans-serif;
+  text-transform: uppercase;
+  font-size: 20px;
+  padding-bottom: 10px;
+  letter-spacing: 1px;
+}
+
+
+
+/* ===============================
+ *  Columns
+ * =============================== */
+
+.column {
+  .rounded-corners;
+  background-color: white;
+  padding: 10px;
+  border: 1px solid #e1e1e8;
+  float: left;
+}
+.wrap {
+  width: 100%;
+  overflow: hidden;
+  margin-bottom: 20px;
+}
+.left-column {
+	.column;
+  width: 400px;
+  margin-right: 20px;
+
+}
+.right-column {
+  .column;
+  width: 400px;
+}
+
+/* ===============================
+ *  Canvas
+ * =============================== */
+#canvas{
+  .rounded-corners;
+  background-color: @backgroundGrey;
+}
+
+
+/* ===============================
+ *  Mixins
+ * =============================== */
+.box-shadow(@style, @c) when (iscolor(@c)) {
+  box-shadow:         @style @c;
+  -webkit-box-shadow: @style @c;
+  -moz-box-shadow:    @style @c;
+}
+.rounded-corners {
+  -webkit-border-radius: 6px;
+  -moz-border-radius: 6px;
+  -o-border-radius: 6px;
+  border-radius: 6px;
+}
