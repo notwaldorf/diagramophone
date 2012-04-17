@@ -3,50 +3,115 @@ class Controller
 		@parser = new Parser
 		return unless inputText
 
-		parsedLines = @parser.parse inputText
-		return unless parsedLines
+		parsedBits = @parser.parse inputText
+		return unless parsedBits
 
-		# create a map that holds all the children of each block
-		# we need this so that we can properly space them
+		@drawer = new Drawer(paper)
+
+		@drawBlocks(parsedBits)
+
+	# create a map that holds all the children of each block
+	# we need this so that we can properly space them
+	getAllBlockPairs: (parsedBits) ->
 		allTheBlockPairs = {}
 
-		for blockPair in parsedLines
-			if allTheBlockPairs[blockPair.first]
-				allTheBlockPairs[blockPair.first].push blockPair
-			else
-				allTheBlockPairs[blockPair.first] = [blockPair]
+		for bit in parsedBits
+			if bit
+				if allTheBlockPairs[bit.first.name]
+					allTheBlockPairs[bit.first.name].push bit
+				else
+					allTheBlockPairs[bit.first.name] = [bit]
 
-		@drawer = new Drawer
-		paper.clear()
+		return allTheBlockPairs
 
-		startPoint = new Point 50, 10;
 
+	drawBlocks: (parsedBits) ->
+		blockLinesByParent = @getAllBlockPairs parsedBits
+		console.log(blockLinesByParent)
+	
 		# keep track of all the blocks that we've drawn
 		# so that we can link blocks even if they haven't
 		# been typed in order
 		blocksThatIHaveDrawn = {}
-		console.log(allTheBlockPairs)
-	
-		for parent, children of allTheBlockPairs
-			# if i've drawn this block before, start from that rectangle
-			if blocksThatIHaveDrawn[parent]
-				parentBlock = blocksThatIHaveDrawn[parent]
-			else
-				parentBlock = @drawer.drawRectangle(paper, startPoint, parent)
-				startPoint.x += @drawer.rectangleWidth + 20
-				blocksThatIHaveDrawn[parent] = parentBlock
 
-			for child in children	# note, this is in parsed input first/last/message format
-				childBlock = @drawer.connectToRectangle(paper, 
-							parentBlock, 
-							"down", 
-							child.second, 
-							child.message,
-							child.arrowStyle)
-				blocksThatIHaveDrawn[child.second] = childBlock
+		for parentName, lines of blockLinesByParent
+			# if i've drawn this block before, start from that rectangle
+			parentBlock = @getOrDrawParentBlock parentName, lines[0], blocksThatIHaveDrawn
+
+			# draw all the connecting children
+			for line in lines	
+				childBlock = @drawer.connectToRectangle(parentBlock, line.second, "down", line.arrow, line.message)
+				blocksThatIHaveDrawn[line.second.name] = childBlock
 		return null
+
+	getOrDrawParentBlock: (parentName, line, blocksThatIHaveDrawn) ->
+		block = blocksThatIHaveDrawn[parentName]
+
+		if block
+			return blocksThatIHaveDrawn[parentName]
+		else
+			newBlock = @drawer.drawRectangle(null, line.first)
+			blocksThatIHaveDrawn[parentName] = newBlock;
+			return newBlock
+
+
 class Parser
 	constructor: ->
+
+	parse: (text) ->
+		allTheLines = text.split("\n")
+		parsedBits = []
+
+		# <3 coffescript
+		parsedBits.push(@parseLine line) for line in allTheLines;
+
+		return parsedBits
+
+	parseLine: (text) ->
+		return unless text # hey there paranoia
+		parsedBit = {}
+		parsedBit.message = ""
+		parsedBit.first = {name: "", colour: ""}
+		parsedBit.second = {name: "", colour: ""}
+		parsedBit.arrow = ""
+
+		# parse the message
+		line = text
+		if @hasMessage text
+			lineAndMsg = @extractLineAndMessage text
+			line = lineAndMsg.line
+			parsedBit.message = lineAndMsg.message
+
+		return unless line
+
+		# parse the names
+		names = null
+		if @hasSolidLine line
+			parsedBit.arrow = ""
+			names = @extractNamesFromSolidLine line
+
+		else if @hasDashedLine line
+			parsedBit.arrow = "--"	
+			names = @extractNamesFromDashedLine line
+
+		return unless names
+
+		parsedBit.first.name = names.first
+		parsedBit.second.name = names.second
+
+		# first
+		if @hasColour names.first
+			namesAndCol = @extractNameAndColour names.first
+			parsedBit.first.name = namesAndCol.name
+			parsedBit.first.colour = namesAndCol.colour
+
+		# second
+		if @hasColour names.second
+			namesAndCol = @extractNameAndColour names.second
+			parsedBit.second.name = namesAndCol.name
+			parsedBit.second.colour = namesAndCol.colour
+
+		return parsedBit
 
 	hasMessage: (text) ->
 		return text.indexOf(":") != -1
@@ -84,100 +149,54 @@ class Parser
 		[first, second] = text.match(@namesLineName)[1..2]
 		return {first:first.trim(), second:second.trim()}
 
-	parse: (text) ->
-		allTheLines = text.split("\n")
-		parsedBits = []
-
-		debugger
-		# <3 coffescript
-		parsedBits.push(@parseLine line) for line in allTheLines;
-
-		return parsedBits
-
-	parseLine: (text) ->
-		return unless text # hey there paranoia
-		parsedBit = {}
-		parsedBit.message = ""
-		parsedBit.first = {name: "", colour: ""}
-		parsedBit.second = {name: "", colour: ""}
-		parsedBit.arrow = ""
-
-		# parse the message
-		line = text
-		if @hasMessage text
-			lineAndMsg = @extractLineAndMessage text
-			line = lineAndMsg.line
-			parsedBit.message = lineAndMsg.message
-
-		return unless line
-
-		# parse the names
-		names = null
-		if @hasSolidLine line
-			parsedBit.arrow = "->"
-			names = @extractNamesFromSolidLine line
-
-		else if @hasDashedLine line
-			parsedBit.arrow = "..>"
-			names = @extractNamesFromDashedLine line
-
-		return unless names
-
-		parsedBit.first.name = names.first
-		parsedBit.second.name = names.second
-
-		# first
-		if @hasColour names.first
-			namesAndCol = @extractNameAndColour names.first
-			parsedBit.first.name = namesAndCol.name
-			parsedBit.first.colour = namesAndCol.colour
-
-		# second
-		if @hasColour names.second
-			namesAndCol = @extractNameAndColour names.second
-			parsedBit.second.name = namesAndCol.name
-			parsedBit.second.colour = namesAndCol.colour
-
-		return parsedBit
+	
 
 
 class Drawer
-	constructor: ->
+	constructor: (@paper) ->
 		@rectangleWidth = 100
 		@rectangleHeight = 50
 		@rectanglePadding = 40
+		@startPoint = new Point 50, 10;
 
-	drawRectangle: (paper, point, text) ->
-		paper.rect(point.x, point.y, @rectangleWidth, @rectangleHeight).attr({"fill":"white"})
-		@drawText(paper, point.x + @rectangleWidth/2, point.y + @rectangleHeight/2, text)	
+	drawRectangle: (point, block) ->
+		if not point
+			point = {}
+			point.x = @startPoint.x
+			point.y = @startPoint.y
+			@startPoint.x += 150
+
+		@paper.rect(point.x, point.y, @rectangleWidth, @rectangleHeight).attr({"fill":"white"})
+		@drawText(point.x + @rectangleWidth/2, point.y + @rectangleHeight/2, block.name)	
+		# if block.colour set colour for block.colour
 		clonedPoint = new Point point.x,point.y
 		return new Rectangle clonedPoint, @rectangleWidth, @rectangleHeight
 
-	drawText: (paper, x, y, text) ->
-		paper.text(x, y, text).attr(
+	drawText: (x, y, text) ->
+		@paper.text(x, y, text).attr(
 			{"font-size": "13px", 
 			"font-family":"'Shadows Into Light Two', sans-serif"
 			})
 
-	connectToRectangle:(paper, previousRectangle, direction, text, arrowMessage, arrowStyle) ->
+	connectToRectangle:(previousRectangle, block, direction, arrowStyle, arrowMsg) ->
 		x = previousRectangle.top.x
 		y = previousRectangle.top.y + @rectangleHeight + @rectanglePadding
 		topPoint = new Point x, y
-		thisRectangle = @drawRectangle paper, topPoint, text
+		thisRectangle = @drawRectangle topPoint, block
 
 		connector = previousRectangle.getConnectorForDirection direction
 		myConnector = thisRectangle.getConnectorForDirection "up"
 
-		@drawLine paper, connector, myConnector, arrowMessage, arrowStyle
+		@drawLine connector, myConnector, arrowMsg, arrowStyle
 		return thisRectangle
 
-	drawLine: (paper, point1, point2, arrowMessage, arrowStyle) ->
-		paper.path("M{0},{1}L{2},{3}", point1.x, point1.y, point2.x, point2.y)
+	drawLine: (point1, point2, arrowMessage, arrowStyle) ->
+		@paper.path("M{0},{1}L{2},{3}", point1.x, point1.y, point2.x, point2.y)
 		.attr({"stroke-dasharray": arrowStyle})
 
 		return unless arrowMessage
 		midpoint = point1.y + (point2.y - point1.y)/2
-		paper.text(point1.x + 5, midpoint, arrowMessage).attr(
+		@paper.text(point1.x + 5, midpoint, arrowMessage).attr(
 			{"font-size": "12px", 
 			"font-family":"'Shadows Into Light Two', sans-serif",
 			"text-anchor":"start"})

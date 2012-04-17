@@ -47,7 +47,7 @@ module "-> syntax",
 
 test "message missing: a -> b", ->
 	parsedBit = @monkey.parseLine("a -> b")
-	equal parsedBit.arrow, "->"
+	equal parsedBit.arrow, ""
 	equal parsedBit.message, ""
 	equal parsedBit.first.name, "a"
 	equal parsedBit.first.colour, ""
@@ -56,7 +56,7 @@ test "message missing: a -> b", ->
 
 test "color on first, message missing: a {red} -> b", ->
 	parsedBit = @monkey.parseLine("a {red} -> b")
-	equal parsedBit.arrow, "->"
+	equal parsedBit.arrow, ""
 	equal parsedBit.message, ""
 	equal parsedBit.first.name, "a"
 	equal parsedBit.first.colour, "red"
@@ -65,7 +65,7 @@ test "color on first, message missing: a {red} -> b", ->
 
 test "color on second, message missing: a -> b {red}", ->
 	parsedBit = @monkey.parseLine("a -> b {red}")
-	equal parsedBit.arrow, "->"
+	equal parsedBit.arrow, ""
 	equal parsedBit.message, ""
 	equal parsedBit.first.name, "a"
 	equal parsedBit.first.colour, ""
@@ -74,7 +74,7 @@ test "color on second, message missing: a -> b {red}", ->
 
 test "color on both, message missing: a {blue} -> b {red}", ->
 	parsedBit = @monkey.parseLine("a {blue} -> b {red}")
-	equal parsedBit.arrow, "->"
+	equal parsedBit.arrow, ""
 	equal parsedBit.message, ""
 	equal parsedBit.first.name, "a"
 	equal parsedBit.first.colour, "blue"
@@ -83,7 +83,7 @@ test "color on both, message missing: a {blue} -> b {red}", ->
 
 test "with message: a -> b : c", ->
 	parsedBit = @monkey.parseLine("a -> b : c")
-	equal parsedBit.arrow, "->"
+	equal parsedBit.arrow, ""
 	equal parsedBit.message, "c"
 	equal parsedBit.first.name, "a"
 	equal parsedBit.first.colour, ""
@@ -92,7 +92,7 @@ test "with message: a -> b : c", ->
 
 test "color on first, with message: a {red} -> b : c", ->
 	parsedBit = @monkey.parseLine("a {red} -> b : c")
-	equal parsedBit.arrow, "->"
+	equal parsedBit.arrow, ""
 	equal parsedBit.message, "c"
 	equal parsedBit.first.name, "a"
 	equal parsedBit.first.colour, "red"
@@ -101,7 +101,7 @@ test "color on first, with message: a {red} -> b : c", ->
 
 test "color on second, with message: a -> b {red} : c", ->
 	parsedBit = @monkey.parseLine("a -> b {red} : c")
-	equal parsedBit.arrow, "->"
+	equal parsedBit.arrow, ""
 	equal parsedBit.message, "c"
 	equal parsedBit.first.name, "a"
 	equal parsedBit.first.colour, ""
@@ -110,7 +110,7 @@ test "color on second, with message: a -> b {red} : c", ->
 
 test "color on both, with message: a {blue} -> b {red} : c", ->
 	parsedBit = @monkey.parseLine("a {blue} -> b {red} : c")
-	equal parsedBit.arrow, "->"
+	equal parsedBit.arrow, ""
 	equal parsedBit.message, "c"
 	equal parsedBit.first.name, "a"
 	equal parsedBit.first.colour, "blue"
@@ -124,7 +124,7 @@ module "..> syntax"
 
 test "message missing: a ..> b", ->
 	parsedBit = @monkey.parseLine("a ..> b")
-	equal parsedBit.arrow, "..>"
+	equal parsedBit.arrow, "--"
 	equal parsedBit.message, ""
 	equal parsedBit.first.name, "a"
 	equal parsedBit.first.colour, ""
@@ -133,7 +133,7 @@ test "message missing: a ..> b", ->
 
 test "color on first, message missing: a {red} ..> b", ->
 	parsedBit = @monkey.parseLine("a {red} ..> b")
-	equal parsedBit.arrow, "..>"
+	equal parsedBit.arrow, "--"
 	equal parsedBit.message, ""
 	equal parsedBit.first.name, "a"
 	equal parsedBit.first.colour, "red"
@@ -142,7 +142,7 @@ test "color on first, message missing: a {red} ..> b", ->
 
 test "color on second, message missing: a ..> b {red}", ->
 	parsedBit = @monkey.parseLine("a ..> b {red}")
-	equal parsedBit.arrow, "..>"
+	equal parsedBit.arrow, "--"
 	equal parsedBit.message, ""
 	equal parsedBit.first.name, "a"
 	equal parsedBit.first.colour, ""
@@ -151,7 +151,7 @@ test "color on second, message missing: a ..> b {red}", ->
 
 test "color on both, message missing: a {blue} ..> b {red}", ->
 	parsedBit = @monkey.parseLine("a {blue} ..> b {red}")
-	equal parsedBit.arrow, "..>"
+	equal parsedBit.arrow, "--"
 	equal parsedBit.message, ""
 	equal parsedBit.first.name, "a"
 	equal parsedBit.first.colour, "blue"
@@ -160,7 +160,7 @@ test "color on both, message missing: a {blue} ..> b {red}", ->
 
 test "with message: a ..> b : c", ->
 	parsedBit = @monkey.parseLine("a ..> b : c")
-	equal parsedBit.arrow, "..>"
+	equal parsedBit.arrow, "--"
 	equal parsedBit.message, "c"
 	equal parsedBit.first.name, "a"
 	equal parsedBit.first.colour, ""
@@ -169,7 +169,7 @@ test "with message: a ..> b : c", ->
 
 test "color on first, with message: a {red} ..> b : c", ->
 	parsedBit = @monkey.parseLine("a {red} ..> b : c")
-	equal parsedBit.arrow, "..>"
+	equal parsedBit.arrow, "--"
 	equal parsedBit.message, "c"
 	equal parsedBit.first.name, "a"
 	equal parsedBit.first.colour, "red"
@@ -178,7 +178,7 @@ test "color on first, with message: a {red} ..> b : c", ->
 
 test "color on second, with message: a ..> b {red} : c", ->
 	parsedBit = @monkey.parseLine("a ..> b {red} : c")
-	equal parsedBit.arrow, "..>"
+	equal parsedBit.arrow, "--"
 	equal parsedBit.message, "c"
 	equal parsedBit.first.name, "a"
 	equal parsedBit.first.colour, ""
@@ -187,7 +187,7 @@ test "color on second, with message: a ..> b {red} : c", ->
 
 test "color on both, with message: a {blue} ..> b {red} : c", ->
 	parsedBit = @monkey.parseLine("a {blue} ..> b {red} : c")
-	equal parsedBit.arrow, "..>"
+	equal parsedBit.arrow, "--"
 	equal parsedBit.message, "c"
 	equal parsedBit.first.name, "a"
 	equal parsedBit.first.colour, "blue"
