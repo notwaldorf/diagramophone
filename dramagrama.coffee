@@ -47,26 +47,46 @@ class Controller
 		return null
 class Parser
 	constructor: ->
-		# first -> second : message
-		@basicExpression = ///
-		  (.*)->(.*):(.*)
-		///
-		@basicExpressionNoMessage = ///
-		  (.*)->(.*)
-		///
 
-		# first --> second : message
-		@dashedExpression = ///
-		  (.*)-->(.*):(.*)
-		///
-		@dashedExpressionNoMessage = ///
-		  (.*)-->(.*)
-		///
+	hasMessage: (text) ->
+		return text.indexOf(":") != -1
+
+	hasColour: (text) ->
+		return text.indexOf("{") != -1 && text.indexOf("}") != -1
+
+	hasSolidLine: (text) ->
+		return text.indexOf("->") != -1
+
+	hasDashedLine: (text) ->
+		return text.indexOf("..>") != -1
+
+	extractLineAndMessage: (text) ->
+		# first -> second : message
+		@lineWithMessage = ///(.*):(.*)///
+		[line, message] = text.match(@lineWithMessage)[1..2]
+		return {line:line.trim(), message:message.trim()}
+
+	extractNameAndColour: (text) ->
+		# name {colour}
+		@nameAndColour = ///(.*){(.*)}///
+		[name, colour] = text.match(@nameAndColour)[1..2]
+		return {name:name.trim(), colour:colour.trim()}
+
+	extractNamesFromSolidLine: (text) ->
+		# a -> b
+		@namesLineName = ///(.*)->(.*)///
+		[first, second] = text.match(@namesLineName)[1..2]
+		return {first:first.trim(), second:second.trim()}
+
+	extractNamesFromDashedLine: (text) ->
+		# a --> b
+		@namesLineName = ///(.*)..>(.*)///
+		[first, second] = text.match(@namesLineName)[1..2]
+		return {first:first.trim(), second:second.trim()}
 
 	parse: (text) ->
 		allTheLines = text.split("\n")
 		parsedLines = []
-
 
 		# TODO: try to use things = (x for x in list) instead
 		# and maybe less horrid regexp code
@@ -77,6 +97,54 @@ class Parser
 				parsedLines.push(@parseBasicExpression line)
 			
 		return parsedLines
+
+	parseLine: (text) ->
+		return unless text # hey there paranoia
+		parsedBit = {}
+		parsedBit.message = ""
+		parsedBit.first = {name: "", colour: ""}
+		parsedBit.second = {name: "", colour: ""}
+		parsedBit.arrow = ""
+
+		# parse the message
+		line = text
+		if @hasMessage text
+			lineAndMsg = @extractLineAndMessage text
+			line = lineAndMsg.line
+			parsedBit.message = lineAndMsg.message
+
+		return unless line
+
+		debugger
+		# parse the names
+		names = null
+		if @hasSolidLine line
+			parsedBit.arrow = "->"
+			names = @extractNamesFromSolidLine line
+
+		else if @hasDashedLine line
+			parsedBit.arrow = "..>"
+			names = @extractNamesFromDashedLine line
+
+		return unless names
+
+		parsedBit.first.name = names.first
+		parsedBit.second.name = names.second
+
+		# first
+		if @hasColour names.first
+			namesAndCol = @extractNameAndColour names.first
+			parsedBit.first.name = namesAndCol.name
+			parsedBit.first.colour = namesAndCol.colour
+
+		# second
+		if @hasColour names.second
+			namesAndCol = @extractNameAndColour names.second
+			parsedBit.second.name = namesAndCol.name
+			parsedBit.second.colour = namesAndCol.colour
+
+		return parsedBit
+
 
 	parseBasicExpression: (line) ->
 		if line.indexOf(":") != -1
