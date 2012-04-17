@@ -59,8 +59,10 @@ block 1 -> block 2
 // arrows could have messages
 block 2 -> block 3 : hey there!
 // look, dashed lines!
-block 4 --> block 5 : arrowMsg3
-block 3 --> block 6 : arrowMsg4
+block 4 ..> block 5 : arrowMsg3
+// look, colours!
+block 3 {#ffb700} ..> block 6 : arrowMsg4
+
 """
 textarea.value = sampleText
 btn.addEventListener 'click', => @controller.makeItGo(textarea.value, paper)

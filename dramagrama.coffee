@@ -86,17 +86,13 @@ class Parser
 
 	parse: (text) ->
 		allTheLines = text.split("\n")
-		parsedLines = []
+		parsedBits = []
 
-		# TODO: try to use things = (x for x in list) instead
-		# and maybe less horrid regexp code
-		for line in allTheLines	
-			if line.indexOf("-->") != -1
-				parsedLines.push(@parseDashedExpression line)
-			else if line.indexOf("->") != -1
-				parsedLines.push(@parseBasicExpression line)
-			
-		return parsedLines
+		debugger
+		# <3 coffescript
+		parsedBits.push(@parseLine line) for line in allTheLines;
+
+		return parsedBits
 
 	parseLine: (text) ->
 		return unless text # hey there paranoia
@@ -115,7 +111,6 @@ class Parser
 
 		return unless line
 
-		debugger
 		# parse the names
 		names = null
 		if @hasSolidLine line
@@ -146,32 +141,6 @@ class Parser
 		return parsedBit
 
 
-	parseBasicExpression: (line) ->
-		if line.indexOf(":") != -1
-			[first, second, message] = line.match(@basicExpression)[1..3]
-		else
-			[first, second] = line.match(@basicExpressionNoMessage)[1..2]
-			message = ""
-
-		return {first: first.trim(),
-		second:second.trim(),
-		message:message.trim(),
-		arrowStyle:""}
-
-	parseDashedExpression: (line) ->
-		if line.indexOf(":") != -1
-			[first, second, message] = line.match(@dashedExpression)[1..3]
-		else 
-			[first, second] = line.match(@dashedExpressionNoMessage)[1..2]
-			message = ""
-
-		return {first: first.trim(),
-		second:second.trim(),
-		message:message.trim(),
-		arrowStyle:"- "}
-
-
-		
 class Drawer
 	constructor: ->
 		@rectangleWidth = 100
