@@ -38,9 +38,11 @@ class Controller
 			parentBlock = @getOrDrawParentBlock parentName, lines[0].first, blocksThatIHaveDrawn
 
 			# draw all the connecting children
-			for line in lines	
-				childBlock = @drawer.connectToRectangle(parentBlock, line.second, "down", line.arrow, line.message)
-				blocksThatIHaveDrawn[line.second.name] = childBlock
+			for line in lines
+				# the parent may be a standalone block and not have any children	
+				if line.second.name != ""
+					childBlock = @drawer.connectToRectangle(parentBlock, line.second, "down", line.arrow, line.message)
+					blocksThatIHaveDrawn[line.second.name] = childBlock
 		return null
 
 	getOrDrawParentBlock: (parentName, lineBlock, blocksThatIHaveDrawn) ->
@@ -86,15 +88,17 @@ class Parser
 
 		return unless line
 
+		return if @hasComment line
 		# parse the names
 		names = null
 		if @hasSolidLine line
 			parsedBit.arrow = ""
 			names = @extractNamesFromSolidLine line
-
 		else if @hasDashedLine line
 			parsedBit.arrow = "--"	
 			names = @extractNamesFromDashedLine line
+		else
+			names = {first:line, second:""}
 
 		return unless names
 
@@ -126,6 +130,9 @@ class Parser
 
 	hasDashedLine: (text) ->
 		return text.indexOf("..>") != -1
+
+	hasComment: (text) ->
+		return text.indexOf("//") != -1
 
 	extractLineAndMessage: (text) ->
 		# first -> second : message
@@ -167,7 +174,7 @@ class Drawer
 			point = {}
 			point.x = @startPoint.x
 			point.y = @startPoint.y
-			@startPoint.x += 150
+			@startPoint.x += 120
 
 		fillColour = block.colour || "white"
 		actualRect = @paper.rect(point.x, point.y, @rectangleWidth, @rectangleHeight).attr({"fill":fillColour, "fill-opacity": "0.8"})

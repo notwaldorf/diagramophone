@@ -36,10 +36,23 @@ module "invalid syntax",
 	setup: -> 
 		@monkey = new Parser()
 
-test "invalid: a  b", ->
+test "standalone: a  b", ->
 	parsedBit = @monkey.parseLine("a b")
-	equal parsedBit, undefined
+	equal parsedBit.arrow, ""
+	equal parsedBit.message, ""
+	equal parsedBit.first.name, "a b"
+	equal parsedBit.first.colour, ""
+	equal parsedBit.second.name, ""
+	equal parsedBit.second.colour, ""
 
+test "standalone with colour: a  b {red}", ->
+	parsedBit = @monkey.parseLine("a b {red}")
+	equal parsedBit.arrow, ""
+	equal parsedBit.message, ""
+	equal parsedBit.first.name, "a b"
+	equal parsedBit.first.colour, "red"
+	equal parsedBit.second.name, ""
+	equal parsedBit.second.colour, ""
 
 module "-> syntax",
 	setup: -> 

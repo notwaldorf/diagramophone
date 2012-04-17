@@ -54,8 +54,6 @@ textarea = document.getElementById("textarea")
 paper = Raphael "canvas", 400, 400
 
 sampleText = """
-// invalid syntax should be ignored and act as comments
-
 // basic blocks
 block 1 -> block 2
 
@@ -67,6 +65,13 @@ block 4 ..> block 5 : arrowMsg3
 
 // and also colours -- css names or hex
 block 3 {#ffb700} ..> block 6 {red} : arrowMsg4
+
+// you can define blocks to be standalone and use them later
+// useful if you want to define and style your blocks first
+// and then draw the connections
+block 7
+block 8 {blue}
+block 7 -> block 8
 
 """
 textarea.value = sampleText
