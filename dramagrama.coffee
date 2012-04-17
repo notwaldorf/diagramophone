@@ -17,7 +17,7 @@ class Controller
 
 		for bit in parsedBits
 			if bit
-				if allTheBlockPairs[bit.first.name]
+				if allTheBlockPairs[bit.first.name] 
 					allTheBlockPairs[bit.first.name].push bit
 				else
 					allTheBlockPairs[bit.first.name] = [bit]
@@ -35,7 +35,8 @@ class Controller
 
 		for parentName, lines of blockLinesByParent
 			# if i've drawn this block before, start from that rectangle
-			parentBlock = @getOrDrawParentBlock parentName, lines[0].first, blocksThatIHaveDrawn, lines.length
+			numActualChildren = @getNumLinkedChildren lines
+			parentBlock = @getOrDrawParentBlock parentName, lines[0].first, blocksThatIHaveDrawn, numActualChildren
 
 			# draw all the connecting children
 			i = 0
@@ -47,6 +48,13 @@ class Controller
 					i++
 		return null
 
+	# get the number of non-standalone children
+	getNumLinkedChildren: (lines) ->
+		total = 0
+		(total = total + 1) for line in lines when line.second.name isnt ""
+
+		return total
+		
 	getOrDrawParentBlock: (parentName, lineBlock, blocksThatIHaveDrawn, numChildren) ->
 		block = blocksThatIHaveDrawn[parentName]
 
@@ -168,8 +176,10 @@ class Drawer
 		@paper.clear()
 		@rectangleWidth = 100
 		@rectangleHeight = 50
-		@rectanglePadding = 40
+		@childrenVerticalPadding = 40
 		@childrenHorizontalPadding = 20
+		@paperWidth = 600
+		@paperHeight = 400
 		@startPoint = new Point 10, 10;
 
 	drawRectangle: (point, block, numChildren) ->
@@ -184,6 +194,15 @@ class Drawer
 			point.y = @startPoint.y
 			# we start the next row either the padding away from the children, or the padding away from this block
 			@startPoint.x += Math.max(@rectangleWidth, childrenWidth) + @childrenHorizontalPadding
+
+		
+		# if the next point is out of the page, resize the page
+		nextRectangleEndX = point.x + @rectangleWidth + @childrenHorizontalPadding
+		nextRectangleEndY = point.y + @rectangleHeight + @childrenVerticalPadding
+
+		# resize to be the perfect width and height
+		@paper.setSize(Math.max(@paperWidth, nextRectangleEndX), Math.max(@paperHeight,nextRectangleEndY) )
+
 
 		fillColour = block.colour || "white"
 		actualRect = @paper.rect(point.x, point.y, @rectangleWidth, @rectangleHeight).attr({"fill":fillColour, "fill-opacity": "0.8"})
@@ -203,7 +222,7 @@ class Drawer
 	connectToRectangle:(previousBlock, block, childIndex, direction, arrowStyle, arrowMsg) ->
 		previousRectangle = previousBlock.rectangle # block also contains the svg, just in case
 		x = childIndex * (@rectangleWidth + @childrenHorizontalPadding) + previousRectangle.top.x
-		y = previousRectangle.top.y + @rectangleHeight + @rectanglePadding
+		y = previousRectangle.top.y + @rectangleHeight + @childrenVerticalPadding
 		topPoint = new Point x, y
 
 		drawn = @drawRectangle topPoint, block, 0
@@ -224,8 +243,6 @@ class Drawer
 			{"font-size": "12px", 
 			"font-family":"'Shadows Into Light Two', sans-serif",
 			"text-anchor":"start"})
-
-		# stroke: "red"
 
 class Rectangle
 	constructor: (@top, @width, @height) ->
