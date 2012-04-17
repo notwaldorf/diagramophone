@@ -34,7 +34,10 @@
 	<div class="left-column">
 		<div class="title" style="overflow:hidden">Code your diagram here 
 			<button class="btn btn-primary btn-mini" id="diagramophone" style="float: right">GO</button>
-		</div>		
+			<label class="checkbox" style="float: right; margin-right: 20px">
+          		<input type="checkbox" id="repl">REPL
+        	</label>
+		</div>	
 		<textarea style="width:390px" id="textarea" rows="20"></textarea>
 
 	</div>
@@ -49,8 +52,6 @@
 <script type="text/coffeescript">
 @controller = new Controller
 
-btn = document.getElementById("diagramophone")
-textarea = document.getElementById("textarea")
 paper = Raphael "canvas", 400, 400
 
 sampleText = """
@@ -73,10 +74,19 @@ block 4 {#ffb700} ..> block 5 {red} : arrowMsg4
 block 7
 block 8 {blue}
 block 7 -> block 8
-
 """
-textarea.value = sampleText
+
+btn = document.getElementById("diagramophone")
+textarea = document.getElementById("textarea")
+repl = document.getElementById("repl")
+
 btn.addEventListener 'click', => @controller.makeItGo(textarea.value, paper)
+textarea.addEventListener 'keyup', => 
+	if (repl.checked)
+		@controller.makeItGo(textarea.value, paper)
+
+textarea.value = sampleText
+	
 </script>
 </html>
 
