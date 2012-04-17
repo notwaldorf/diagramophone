@@ -56,8 +56,11 @@ paper = Raphael "canvas", 400, 400
 
 sampleText = """
 // basic blocks, with arrow or diamond connectors
-block 1 -<> block 2.1
-block 1 -> block 2.2
+block 1 -> block 2.1
+block 1 -<> block 2.2
+block 2.1 -- block 3.1
+block 3.1 -.- block 3.2
+
 
 // arrows could have messages
 block 3 -> block 4 {red} : hey there!

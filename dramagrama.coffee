@@ -100,7 +100,16 @@ class Parser
 		return if @hasComment line
 		# parse the names
 		names = null
-		if @hasSolidRightArrow line
+		debugger
+		if @hasSolidLine line
+			parsedBit.arrow.type = ""
+			parsedBit.arrow.head = "none"
+			names = @extractNamesFromSolidLine line
+		else if @hasDashedLine line
+			parsedBit.arrow.type = "-"
+			parsedBit.arrow.head = "none"
+			names = @extractNamesFromDashedLine line
+		else if @hasSolidRightArrow line
 			parsedBit.arrow.type = ""
 			parsedBit.arrow.head = "classic"
 			names = @extractNamesFromSolidRightArrow line
@@ -144,17 +153,35 @@ class Parser
 	hasColour: (text) ->
 		return text.indexOf("{") != -1 && text.indexOf("}") != -1
 
+	hasSolidLine: (text) ->
+		return text.indexOf("--") != -1
+
+	hasDashedLine: (text) ->
+		return text.indexOf("-.-") != -1
+
 	hasSolidRightArrow: (text) ->
 		return text.indexOf("->") != -1
 
 	hasSolidRightDiamond: (text) ->
 		return text.indexOf("-<>") != -1
 
+	hasSolidLeftArrow: (text) ->
+		return text.indexOf("<-") != -1
+
+	hasSolidLeftDiamond: (text) ->
+		return text.indexOf("<>-") != -1
+
 	hasDashedRightArrow: (text) ->
 		return text.indexOf("..>") != -1
 
 	hasDashedRightDiamond: (text) ->
 		return text.indexOf("..<>") != -1
+
+	hasDashedLeftArrow: (text) ->
+		return text.indexOf("<..") != -1
+
+	hasDashedLeftDiamond: (text) ->
+		return text.indexOf("<>..") != -1
 
 	hasComment: (text) ->
 		return text.indexOf("//") != -1
@@ -170,6 +197,18 @@ class Parser
 		@nameAndColour = ///(.*){(.*)}///
 		[name, colour] = text.match(@nameAndColour)[1..2]
 		return {name:name.trim(), colour:colour.trim()}
+
+	extractNamesFromSolidLine: (text) ->
+		# a -> b
+		@namesLineName = ///(.*)--(.*)///
+		[first, second] = text.match(@namesLineName)[1..2]
+		return {first:first.trim(), second:second.trim()}
+
+	extractNamesFromDashedLine: (text) ->
+		# a -> b
+		@namesLineName = ///(.*)-.-(.*)///
+		[first, second] = text.match(@namesLineName)[1..2]
+		return {first:first.trim(), second:second.trim()}
 
 	extractNamesFromSolidRightArrow: (text) ->
 		# a -> b
