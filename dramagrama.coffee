@@ -43,7 +43,7 @@ class Controller
 			for line in lines
 				# the parent may be a standalone block and not have any children	
 				if line.second.name != ""
-					childBlock = @drawer.connectToRectangle(parentBlock, line.second, i, "down", line.arrow, line.message)
+					childBlock = @drawer.connectToRectangle(parentBlock, line.second, i, "down", line.arrow)
 					blocksThatIHaveDrawn[line.second.name] = childBlock
 					i++
 		return null
@@ -84,29 +84,38 @@ class Parser
 	parseLine: (text) ->
 		return unless text # hey there paranoia
 		parsedBit = {}
-		parsedBit.message = ""
 		parsedBit.first = {name: "", colour: ""}
 		parsedBit.second = {name: "", colour: ""}
-		parsedBit.arrow = ""
+		parsedBit.arrow = {message:"", type: "", head:""}
 
 		# parse the message
 		line = text
 		if @hasMessage text
 			lineAndMsg = @extractLineAndMessage text
 			line = lineAndMsg.line
-			parsedBit.message = lineAndMsg.message
+			parsedBit.arrow.message = lineAndMsg.message
 
 		return unless line
 
 		return if @hasComment line
 		# parse the names
 		names = null
-		if @hasSolidLine line
-			parsedBit.arrow = ""
-			names = @extractNamesFromSolidLine line
-		else if @hasDashedLine line
-			parsedBit.arrow = "-"	
-			names = @extractNamesFromDashedLine line
+		if @hasSolidRightArrow line
+			parsedBit.arrow.type = ""
+			parsedBit.arrow.head = "classic"
+			names = @extractNamesFromSolidRightArrow line
+		else if @hasSolidRightDiamond line
+			parsedBit.arrow.type = ""
+			parsedBit.arrow.head = "diamond"
+			names = @extractNamesFromSolidRightDiamond line
+		else if @hasDashedRightArrow line
+			parsedBit.arrow.type = "-"	
+			parsedBit.arrow.head = "classic"
+			names = @extractNamesFromDashedRightArrow line
+		else if @hasDashedRightDiamond line
+			parsedBit.arrow.type = "-"	
+			parsedBit.arrow.head = "diamond"
+			names = @extractNamesFromDashedRightDiamond line
 		else
 			names = {first:line, second:""}
 
@@ -135,11 +144,17 @@ class Parser
 	hasColour: (text) ->
 		return text.indexOf("{") != -1 && text.indexOf("}") != -1
 
-	hasSolidLine: (text) ->
+	hasSolidRightArrow: (text) ->
 		return text.indexOf("->") != -1
 
-	hasDashedLine: (text) ->
+	hasSolidRightDiamond: (text) ->
+		return text.indexOf("-<>") != -1
+
+	hasDashedRightArrow: (text) ->
 		return text.indexOf("..>") != -1
+
+	hasDashedRightDiamond: (text) ->
+		return text.indexOf("..<>") != -1
 
 	hasComment: (text) ->
 		return text.indexOf("//") != -1
@@ -156,15 +171,28 @@ class Parser
 		[name, colour] = text.match(@nameAndColour)[1..2]
 		return {name:name.trim(), colour:colour.trim()}
 
-	extractNamesFromSolidLine: (text) ->
+	extractNamesFromSolidRightArrow: (text) ->
 		# a -> b
 		@namesLineName = ///(.*)->(.*)///
 		[first, second] = text.match(@namesLineName)[1..2]
 		return {first:first.trim(), second:second.trim()}
 
-	extractNamesFromDashedLine: (text) ->
+	extractNamesFromSolidRightDiamond: (text) ->
+		# a -<> b
+		debugger
+		@namesLineName = ///(.*)-<>(.*)///
+		[first, second] = text.match(@namesLineName)[1..2]
+		return {first:first.trim(), second:second.trim()}
+
+	extractNamesFromDashedRightArrow: (text) ->
 		# a --> b
 		@namesLineName = ///(.*)..>(.*)///
+		[first, second] = text.match(@namesLineName)[1..2]
+		return {first:first.trim(), second:second.trim()}
+
+	extractNamesFromDashedRightDiamond: (text) ->
+		# a --<> b
+		@namesLineName = ///(.*)..<>(.*)///
 		[first, second] = text.match(@namesLineName)[1..2]
 		return {first:first.trim(), second:second.trim()}
 
@@ -219,7 +247,7 @@ class Drawer
 			"font-family":"'Shadows Into Light Two', sans-serif"
 			})
 
-	connectToRectangle:(previousBlock, block, childIndex, direction, arrowStyle, arrowMsg) ->
+	connectToRectangle:(previousBlock, block, childIndex, direction, arrow) ->
 		previousRectangle = previousBlock.rectangle # block also contains the svg, just in case
 		x = childIndex * (@rectangleWidth + @childrenHorizontalPadding) + previousRectangle.top.x
 		y = previousRectangle.top.y + @rectangleHeight + @childrenVerticalPadding
@@ -230,16 +258,17 @@ class Drawer
 		connector = previousRectangle.getConnectorForDirection direction
 		myConnector = drawn.rectangle.getConnectorForDirection "up"
 
-		@drawLine connector, myConnector, arrowMsg, arrowStyle
+		@drawLine connector, myConnector, arrow
 		return drawn
 
-	drawLine: (point1, point2, arrowMessage, arrowStyle) ->
+	drawLine: (point1, point2, arrow) ->
+		arrowEnd = arrow.head + "-wide-long"
 		@paper.path("M{0},{1}L{2},{3}", point1.x, point1.y, point2.x, point2.y)
-		.attr({"stroke-dasharray": arrowStyle, "stroke-width": 2})
+		.attr({"stroke-dasharray": arrow.type, "stroke-width": 2, "arrow-end":arrowEnd})
 
-		return unless arrowMessage
+		return unless arrow.message
 		midpoint = point1.y + (point2.y - point1.y)/2
-		@paper.text(point1.x + 5, midpoint, arrowMessage).attr(
+		@paper.text(point1.x + 5, midpoint, arrow.message).attr(
 			{"font-size": "12px", 
 			"font-family":"'Shadows Into Light Two', sans-serif",
 			"text-anchor":"start"})
