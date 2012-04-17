@@ -27,7 +27,6 @@ class Controller
 
 	drawBlocks: (parsedBits) ->
 		blockLinesByParent = @getAllBlockPairs parsedBits
-		console.log(blockLinesByParent)
 	
 		# keep track of all the blocks that we've drawn
 		# so that we can link blocks even if they haven't
@@ -36,7 +35,7 @@ class Controller
 
 		for parentName, lines of blockLinesByParent
 			# if i've drawn this block before, start from that rectangle
-			parentBlock = @getOrDrawParentBlock parentName, lines[0], blocksThatIHaveDrawn
+			parentBlock = @getOrDrawParentBlock parentName, lines[0].first, blocksThatIHaveDrawn
 
 			# draw all the connecting children
 			for line in lines	
@@ -44,13 +43,16 @@ class Controller
 				blocksThatIHaveDrawn[line.second.name] = childBlock
 		return null
 
-	getOrDrawParentBlock: (parentName, line, blocksThatIHaveDrawn) ->
+	getOrDrawParentBlock: (parentName, lineBlock, blocksThatIHaveDrawn) ->
 		block = blocksThatIHaveDrawn[parentName]
 
 		if block
-			return blocksThatIHaveDrawn[parentName]
+			# we may have to update the colour
+			if (lineBlock.colour)
+				block.svg.attr("fill":lineBlock.colour)
+			return block
 		else
-			newBlock = @drawer.drawRectangle(null, line.first)
+			newBlock = @drawer.drawRectangle(null, lineBlock)
 			blocksThatIHaveDrawn[parentName] = newBlock;
 			return newBlock
 
@@ -154,6 +156,7 @@ class Parser
 
 class Drawer
 	constructor: (@paper) ->
+		@paper.clear()
 		@rectangleWidth = 100
 		@rectangleHeight = 50
 		@rectanglePadding = 40
@@ -166,11 +169,14 @@ class Drawer
 			point.y = @startPoint.y
 			@startPoint.x += 150
 
-		@paper.rect(point.x, point.y, @rectangleWidth, @rectangleHeight).attr({"fill":"white"})
+		fillColour = block.colour || "white"
+		actualRect = @paper.rect(point.x, point.y, @rectangleWidth, @rectangleHeight).attr({"fill":fillColour, "fill-opacity": "0.8"})
 		@drawText(point.x + @rectangleWidth/2, point.y + @rectangleHeight/2, block.name)	
-		# if block.colour set colour for block.colour
 		clonedPoint = new Point point.x,point.y
-		return new Rectangle clonedPoint, @rectangleWidth, @rectangleHeight
+
+		newRect = new Rectangle clonedPoint, @rectangleWidth, @rectangleHeight
+
+		return {rectangle:newRect, svg:actualRect}
 
 	drawText: (x, y, text) ->
 		@paper.text(x, y, text).attr(
@@ -178,17 +184,19 @@ class Drawer
 			"font-family":"'Shadows Into Light Two', sans-serif"
 			})
 
-	connectToRectangle:(previousRectangle, block, direction, arrowStyle, arrowMsg) ->
+	connectToRectangle:(previousBlock, block, direction, arrowStyle, arrowMsg) ->
+		previousRectangle = previousBlock.rectangle # block also contains the svg, just in case
 		x = previousRectangle.top.x
 		y = previousRectangle.top.y + @rectangleHeight + @rectanglePadding
 		topPoint = new Point x, y
-		thisRectangle = @drawRectangle topPoint, block
+
+		drawn = @drawRectangle topPoint, block
 
 		connector = previousRectangle.getConnectorForDirection direction
-		myConnector = thisRectangle.getConnectorForDirection "up"
+		myConnector = drawn.rectangle.getConnectorForDirection "up"
 
 		@drawLine connector, myConnector, arrowMsg, arrowStyle
-		return thisRectangle
+		return drawn
 
 	drawLine: (point1, point2, arrowMessage, arrowStyle) ->
 		@paper.path("M{0},{1}L{2},{3}", point1.x, point1.y, point2.x, point2.y)
