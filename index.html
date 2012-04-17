@@ -51,20 +51,21 @@
 
 btn = document.getElementById("diagramophone")
 textarea = document.getElementById("textarea")
-paper = Raphael "canvas", 400, 400
+paper = Raphael "canvas", 600, 400
 
 sampleText = """
 // basic blocks
-block 1 -> block 2
+block 1 -> block 2.1
+block 1 -> block 2.2
 
 // arrows could have messages
-block 2 -> block 3 {red} : hey there!
+block 3 -> block 4 {red} : hey there!
 
 // look, dashed lines!
-block 4 ..> block 5 : arrowMsg3
+block 2.2 ..> block 6 : arrowMsg3
 
 // and also colours -- css names or hex
-block 3 {#ffb700} ..> block 6 {red} : arrowMsg4
+block 4 {#ffb700} ..> block 5 {red} : arrowMsg4
 
 // you can define blocks to be standalone and use them later
 // useful if you want to define and style your blocks first

@@ -35,17 +35,19 @@ class Controller
 
 		for parentName, lines of blockLinesByParent
 			# if i've drawn this block before, start from that rectangle
-			parentBlock = @getOrDrawParentBlock parentName, lines[0].first, blocksThatIHaveDrawn
+			parentBlock = @getOrDrawParentBlock parentName, lines[0].first, blocksThatIHaveDrawn, lines.length
 
 			# draw all the connecting children
+			i = 0
 			for line in lines
 				# the parent may be a standalone block and not have any children	
 				if line.second.name != ""
-					childBlock = @drawer.connectToRectangle(parentBlock, line.second, "down", line.arrow, line.message)
+					childBlock = @drawer.connectToRectangle(parentBlock, line.second, i, "down", line.arrow, line.message)
 					blocksThatIHaveDrawn[line.second.name] = childBlock
+					i++
 		return null
 
-	getOrDrawParentBlock: (parentName, lineBlock, blocksThatIHaveDrawn) ->
+	getOrDrawParentBlock: (parentName, lineBlock, blocksThatIHaveDrawn, numChildren) ->
 		block = blocksThatIHaveDrawn[parentName]
 
 		if block
@@ -54,7 +56,7 @@ class Controller
 				block.svg.attr("fill":lineBlock.colour)
 			return block
 		else
-			newBlock = @drawer.drawRectangle(null, lineBlock)
+			newBlock = @drawer.drawRectangle(null, lineBlock, numChildren)
 			blocksThatIHaveDrawn[parentName] = newBlock;
 			return newBlock
 
@@ -167,14 +169,21 @@ class Drawer
 		@rectangleWidth = 100
 		@rectangleHeight = 50
 		@rectanglePadding = 40
-		@startPoint = new Point 50, 10;
+		@childrenHorizontalPadding = 20
+		@startPoint = new Point 10, 10;
 
-	drawRectangle: (point, block) ->
+	drawRectangle: (point, block, numChildren) ->
 		if not point
+			# whatever the original point, we need to center the square above the children
+			# which hold a width of n * (@rectangleWidth + @childrenHorizontalPadding)
+			# the center will be half way, and our start point will be @rectangleWidth/2 before that
+			childrenWidth = numChildren * @rectangleWidth + (numChildren-1) * @childrenHorizontalPadding
+			cornerStart = childrenWidth / 2 - @rectangleWidth/2
 			point = {}
-			point.x = @startPoint.x
+			point.x = @startPoint.x #+ cornerStart
 			point.y = @startPoint.y
-			@startPoint.x += 120
+			# we start the next row either the padding away from the children, or the padding away from this block
+			@startPoint.x += Math.max(@rectangleWidth, childrenWidth) + @childrenHorizontalPadding
 
 		fillColour = block.colour || "white"
 		actualRect = @paper.rect(point.x, point.y, @rectangleWidth, @rectangleHeight).attr({"fill":fillColour, "fill-opacity": "0.8"})
@@ -191,13 +200,13 @@ class Drawer
 			"font-family":"'Shadows Into Light Two', sans-serif"
 			})
 
-	connectToRectangle:(previousBlock, block, direction, arrowStyle, arrowMsg) ->
+	connectToRectangle:(previousBlock, block, childIndex, direction, arrowStyle, arrowMsg) ->
 		previousRectangle = previousBlock.rectangle # block also contains the svg, just in case
-		x = previousRectangle.top.x
+		x = childIndex * (@rectangleWidth + @childrenHorizontalPadding) + previousRectangle.top.x
 		y = previousRectangle.top.y + @rectangleHeight + @rectanglePadding
 		topPoint = new Point x, y
 
-		drawn = @drawRectangle topPoint, block
+		drawn = @drawRectangle topPoint, block, 0
 
 		connector = previousRectangle.getConnectorForDirection direction
 		myConnector = drawn.rectangle.getConnectorForDirection "up"
