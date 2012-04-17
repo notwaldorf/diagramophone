@@ -105,7 +105,7 @@ class Parser
 			parsedBit.arrow = ""
 			names = @extractNamesFromSolidLine line
 		else if @hasDashedLine line
-			parsedBit.arrow = "--"	
+			parsedBit.arrow = "-"	
 			names = @extractNamesFromDashedLine line
 		else
 			names = {first:line, second:""}
@@ -235,7 +235,7 @@ class Drawer
 
 	drawLine: (point1, point2, arrowMessage, arrowStyle) ->
 		@paper.path("M{0},{1}L{2},{3}", point1.x, point1.y, point2.x, point2.y)
-		.attr({"stroke-dasharray": arrowStyle})
+		.attr({"stroke-dasharray": arrowStyle, "stroke-width": 2})
 
 		return unless arrowMessage
 		midpoint = point1.y + (point2.y - point1.y)/2
