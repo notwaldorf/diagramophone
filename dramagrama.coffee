@@ -113,12 +113,12 @@ class Parser
 			parsedBit.arrow.direction = namesAndArrow.arrow.direction
 
 		# parse the colours	
-		if @hasColour names.first
-			namesAndCol = @extractNameAndColour names.first
+		if @hasColour parsedBit.first.name
+			namesAndCol = @extractNameAndColour parsedBit.first.name
 			parsedBit.first.name = namesAndCol.name
 			parsedBit.first.colour = namesAndCol.colour
-		if @hasColour names.second
-			namesAndCol = @extractNameAndColour names.second
+		if @hasColour parsedBit.second.name
+			namesAndCol = @extractNameAndColour parsedBit.second.name
 			parsedBit.second.name = namesAndCol.name
 			parsedBit.second.colour = namesAndCol.colour
 
