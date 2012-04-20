@@ -43,8 +43,13 @@ class Controller
 			for line in lines
 				# the parent may be a standalone block and not have any children	
 				if line.second.name != ""
-					childBlock = @drawer.connectToRectangle(parentBlock, line.second, i, "down", line.arrow)
-					blocksThatIHaveDrawn[line.second.name] = childBlock
+					childBlock = blocksThatIHaveDrawn[line.second.name]
+					
+					if childBlock
+						@drawer.connectRectangles(parentBlock, childBlock, "down", line.arrow)
+					else
+						childBlock = @drawer.connectToRectangle(parentBlock, line.second, i, "down", line.arrow)
+						blocksThatIHaveDrawn[line.second.name] = childBlock
 					i++
 		return null
 
@@ -263,6 +268,11 @@ class Drawer
 
 		@drawLine connector, myConnector, arrow
 		return drawn
+		
+	connectRectangles: (parentBlock, childBlock, direction, arrow)->
+		connector = parentBlock.rectangle.getConnectorForDirection direction
+		myConnector = childBlock.rectangle.getConnectorForDirection "up"
+		@drawLine connector, myConnector, arrow
 
 	drawLine: (point1, point2, arrow) ->
 		# arrow.direction gives left/right/both. if both, you need to draw both paths
