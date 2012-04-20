@@ -229,8 +229,10 @@ class Drawer
 		nextRectangleEndX = point.x + @rectangleWidth + @childrenHorizontalPadding
 		nextRectangleEndY = point.y + @rectangleHeight + @childrenVerticalPadding
 
-		# resize to be the perfect width and height
-		@paper.setSize(Math.max(@paperWidth, nextRectangleEndX), Math.max(@paperHeight,nextRectangleEndY) )
+		# resize to be the optimal width and height
+		@paperWidth = Math.max(@paperWidth, nextRectangleEndX)
+		@paperHeight = Math.max(@paperHeight,nextRectangleEndY)
+		@paper.setSize(@paperWidth, @paperHeight)
 
 
 		fillColour = block.colour || "white"
