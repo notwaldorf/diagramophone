@@ -98,48 +98,26 @@ class Parser
 		return unless line
 
 		return if @hasComment line
+		
 		# parse the names
-		names = null
-		debugger
-		if @hasSolidLine line
-			parsedBit.arrow.type = ""
-			parsedBit.arrow.head = "none"
-			names = @extractNamesFromSolidLine line
-		else if @hasDashedLine line
-			parsedBit.arrow.type = "-"
-			parsedBit.arrow.head = "none"
-			names = @extractNamesFromDashedLine line
-		else if @hasSolidRightArrow line
-			parsedBit.arrow.type = ""
-			parsedBit.arrow.head = "classic"
-			names = @extractNamesFromSolidRightArrow line
-		else if @hasSolidRightDiamond line
-			parsedBit.arrow.type = ""
-			parsedBit.arrow.head = "diamond"
-			names = @extractNamesFromSolidRightDiamond line
-		else if @hasDashedRightArrow line
-			parsedBit.arrow.type = "-"	
-			parsedBit.arrow.head = "classic"
-			names = @extractNamesFromDashedRightArrow line
-		else if @hasDashedRightDiamond line
-			parsedBit.arrow.type = "-"	
-			parsedBit.arrow.head = "diamond"
-			names = @extractNamesFromDashedRightDiamond line
-		else
-			names = {first:line, second:""}
+		namesAndArrow = @extractNamesAndArrow line
+		
+		# if this is null, we have a standalone block
+		if !namesAndArrow
+			parsedBit.first.name = line
+		else		
+			parsedBit.first.name = namesAndArrow.names.first
+			parsedBit.second.name = namesAndArrow.names.second
+			parsedBit.arrow.type = namesAndArrow.arrow.type
+			parsedBit.arrow.headLeft = namesAndArrow.arrow.headLeft
+			parsedBit.arrow.headRight = namesAndArrow.arrow.headRight
+			parsedBit.arrow.direction = namesAndArrow.arrow.direction
 
-		return unless names
-
-		parsedBit.first.name = names.first
-		parsedBit.second.name = names.second
-
-		# first
+		# parse the colours	
 		if @hasColour names.first
 			namesAndCol = @extractNameAndColour names.first
 			parsedBit.first.name = namesAndCol.name
 			parsedBit.first.colour = namesAndCol.colour
-
-		# second
 		if @hasColour names.second
 			namesAndCol = @extractNameAndColour names.second
 			parsedBit.second.name = namesAndCol.name
@@ -153,90 +131,75 @@ class Parser
 	hasColour: (text) ->
 		return text.indexOf("{") != -1 && text.indexOf("}") != -1
 
-	hasSolidLine: (text) ->
-		return text.indexOf("--") != -1
-
-	hasDashedLine: (text) ->
-		return text.indexOf("-.-") != -1
-
-	hasSolidRightArrow: (text) ->
-		return text.indexOf("->") != -1
-
-	hasSolidRightDiamond: (text) ->
-		return text.indexOf("-<>") != -1
-
-	hasSolidLeftArrow: (text) ->
-		return text.indexOf("<-") != -1
-
-	hasSolidLeftDiamond: (text) ->
-		return text.indexOf("<>-") != -1
-
-	hasDashedRightArrow: (text) ->
-		return text.indexOf("..>") != -1
-
-	hasDashedRightDiamond: (text) ->
-		return text.indexOf("..<>") != -1
-
-	hasDashedLeftArrow: (text) ->
-		return text.indexOf("<..") != -1
-
-	hasDashedLeftDiamond: (text) ->
-		return text.indexOf("<>..") != -1
-
 	hasComment: (text) ->
 		return text.indexOf("//") != -1
 
 	extractLineAndMessage: (text) ->
 		# first -> second : message
-		@lineWithMessage = ///(.*):(.*)///
-		[line, message] = text.match(@lineWithMessage)[1..2]
+		lineWithMessage = ///(.*):(.*)///
+		[line, message] = text.match(lineWithMessage)[1..2]
 		return {line:line.trim(), message:message.trim()}
 
 	extractNameAndColour: (text) ->
 		# name {colour}
-		@nameAndColour = ///(.*){(.*)}///
-		[name, colour] = text.match(@nameAndColour)[1..2]
+		nameAndColour = ///(.*){(.*)}///
+		[name, colour] = text.match(nameAndColour)[1..2]
 		return {name:name.trim(), colour:colour.trim()}
 
-	extractNamesFromSolidLine: (text) ->
-		# a -> b
-		@namesLineName = ///(.*)--(.*)///
-		[first, second] = text.match(@namesLineName)[1..2]
-		return {first:first.trim(), second:second.trim()}
-
-	extractNamesFromDashedLine: (text) ->
-		# a -> b
-		@namesLineName = ///(.*)-.-(.*)///
-		[first, second] = text.match(@namesLineName)[1..2]
-		return {first:first.trim(), second:second.trim()}
-
-	extractNamesFromSolidRightArrow: (text) ->
-		# a -> b
-		@namesLineName = ///(.*)->(.*)///
-		[first, second] = text.match(@namesLineName)[1..2]
-		return {first:first.trim(), second:second.trim()}
-
-	extractNamesFromSolidRightDiamond: (text) ->
-		# a -<> b
-		debugger
-		@namesLineName = ///(.*)-<>(.*)///
-		[first, second] = text.match(@namesLineName)[1..2]
-		return {first:first.trim(), second:second.trim()}
-
-	extractNamesFromDashedRightArrow: (text) ->
-		# a --> b
-		@namesLineName = ///(.*)..>(.*)///
-		[first, second] = text.match(@namesLineName)[1..2]
-		return {first:first.trim(), second:second.trim()}
-
-	extractNamesFromDashedRightDiamond: (text) ->
-		# a --<> b
-		@namesLineName = ///(.*)..<>(.*)///
-		[first, second] = text.match(@namesLineName)[1..2]
-		return {first:first.trim(), second:second.trim()}
-
+	extractNamesAndArrow: (text) ->
+		doubleArrow = ///(.*)(<>-<>|<->|<-<>|<>->|<>\.\.<>|<\.\.>|<\.\.<>|<>\.\.>)(.*)///
+		singleArrow = ///(.*)(--|-\.-|->|\.\.>|-<>|\.\.<>|<-|<\.\.|<>-|<>\.\.)(.*)///
+		# first try to match the double arrow. if that works, then you've hit jackpot
+		# if that doesn't match, then go for the single arrow
+		# if i join these in one massive regexp, sanity breaks and i'm not debugging regexps.		
+		try 
+			[first, arrow, second] = text.match(doubleArrow)[1..3]
+		catch e1
+			# didn't match a double arrow. can we match a single arrow?
+			try
+				[first, arrow, second] = text.match(singleArrow)[1..3]
+			catch e2
+				return null
+		
+		return {names:{first:first.trim(), second:second.trim()}, arrow:@extractArrow(arrow)}
 	
-
+	# TODO: this is still gross
+	extractArrow: (text) ->
+		# arrow head. this is gross
+		if text[0] == "<" && text[1] == ">"
+			headLeft = "diamond"
+		else if text[0] == "<"
+			headLeft = "classic"
+		else
+			headLeft = "none"
+		
+		if text[text.length-2] == "<" && text[text.length-1] == ">"
+			headRight = "diamond"
+		else if text[text.length-1] == ">"
+			headRight = "classic"
+		else
+			headRight = "none"			
+	
+		# dash type
+		if text.indexOf("..") != -1
+			type = "-"
+		else if text.indexOf("-.-") != -1 
+			type = "-"
+		else 
+			type = ""
+		
+		# direction: left, right, both
+		# here we're assuming that botht he diamond and the arrow end in a >
+		if text[0] == "<" and text[text.length-1] == ">"
+			direction = "both";
+		else if text[0] == "<"
+			direction = "left"
+		else if text[text.length-1] == ">"
+			direction = "right"
+		else
+			direction = ""
+			
+		return {direction: direction, type:type, headLeft:headLeft, headRight:headRight}	
 
 class Drawer
 	constructor: (@paper) ->
