@@ -265,16 +265,24 @@ class Drawer
 		return drawn
 
 	drawLine: (point1, point2, arrow) ->
-		arrowEnd = arrow.head + "-wide-long"
-		@paper.path("M{0},{1}L{2},{3}", point1.x, point1.y, point2.x, point2.y)
-		.attr({"stroke-dasharray": arrow.type, "stroke-width": 2, "arrow-end":arrowEnd})
-
+		# arrow.direction gives left/right/both. if both, you need to draw both paths
+		if (arrow.direction == "" )
+			@drawPath(point1, point2, arrow.headRight, arrow.type)
+		if (arrow.direction == "right" || arrow.direction == "both")
+			@drawPath(point1, point2, arrow.headRight, arrow.type)
+		if (arrow.direction == "left" || arrow.direction == "both")
+			@drawPath(point2, point1, arrow.headLeft, arrow.type)
+			
 		return unless arrow.message
 		midpoint = point1.y + (point2.y - point1.y)/2
 		@paper.text(point1.x + 5, midpoint, arrow.message).attr(
 			{"font-size": "12px", 
 			"font-family":"'Shadows Into Light Two', sans-serif",
 			"text-anchor":"start"})
+			
+	drawPath: (point1, point2, head, dash) ->
+		@paper.path("M{0},{1}L{2},{3}", point1.x, point1.y, point2.x, point2.y)
+		.attr({"stroke-dasharray": dash, "stroke-width": 2, "arrow-end":head + "-wide-long"})
 
 class Rectangle
 	constructor: (@top, @width, @height) ->
