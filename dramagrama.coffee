@@ -68,7 +68,6 @@ class Controller
 			blocksThatIHaveDrawn[parentName] = newBlock;
 			return newBlock
 
-
 class Parser
 	constructor: ->
 
