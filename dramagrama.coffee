@@ -31,7 +31,7 @@ class Controller
 			if childBlock
 				@drawer.connectExistingBlocks(parentBlock, childBlock, "down", child.arrow )
 			else
-				childBlock = @drawer.connectToRectangle(parentBlock, child, i, "down", child.arrow)
+				childBlock = @drawer.drawAndConnectToBlock(parentBlock, child, i, "down", child.arrow)
 				@blocksThatIHaveDrawn[child.name] = childBlock
 				@drawRootedBlock child
 				i++
@@ -283,7 +283,7 @@ class Drawer
 			"font-family":"'Shadows Into Light Two', sans-serif"
 			})
 
-	connectToRectangle:(previousBlock, block, childIndex, direction, arrow) ->
+	drawAndConnectToBlock:(previousBlock, block, childIndex, direction, arrow) ->
 		previousRectangle = previousBlock.rectangle # block also contains the svg, just in case
 		x = childIndex * (@rectangleWidth + @childrenHorizontalPadding) + previousRectangle.top.x
 		y = previousRectangle.top.y + @rectangleHeight + @childrenVerticalPadding
@@ -297,11 +297,6 @@ class Drawer
 		@drawLine connector, myConnector, arrow
 		return drawn
 		
-	connectRectangles: (parentBlock, childBlock, direction, arrow)->
-		connector = parentBlock.rectangle.getConnectorForDirection direction
-		myConnector = childBlock.rectangle.getConnectorForDirection "up"
-		@drawLine connector, myConnector, arrow
-
 	connectExistingBlocks:(block1, block2, direction, arrow) ->
 		connector1 = block1.rectangle.getConnectorForDirection direction
 		connector2 = block2.rectangle.getConnectorForDirection "up"
@@ -318,8 +313,10 @@ class Drawer
 			@drawPath(point2, point1, arrow.headLeft, arrow.type)
 			
 		return unless arrow.message
-		midpoint = point1.y + (point2.y - point1.y)/2
-		@paper.text(point1.x + 5, midpoint, arrow.message).attr(
+
+		y_mid = point1.y + 20 #point1.y + (point2.y - point1.y)/2
+		x_mid = point1.x + 5 #(point2.x - point1.x)/2 + 5
+		@paper.text(x_mid, y_mid, arrow.message).attr(
 			{"font-size": "12px", 
 			"font-family":"'Shadows Into Light Two', sans-serif",
 			"text-anchor":"start"})
