@@ -115,7 +115,7 @@ class Parser
 		parsedBit = {}
 		parsedBit.first = {name: "", colour: ""}
 		parsedBit.second = {name: "", colour: ""}
-		parsedBit.arrow = {message:"", type: "", head:""}
+		parsedBit.arrow = {message:"", type: "", headLeft:"", headRight: ""}
 
 		# parse the message
 		line = text
