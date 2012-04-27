@@ -70,6 +70,9 @@ class Parser
 				a = {name: aname, colour: "", children:[]}
 				tree.children.push a
 
+			# don't panic about self loops
+			continue if aname == bname
+
 			# if b doesn't exist, it's easy. just add it and be done
 			if !b and bname != ""
 				b = {name: bname, colour: "", children:[]}
