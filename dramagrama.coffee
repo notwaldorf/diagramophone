@@ -51,7 +51,6 @@ class Parser
 
 		# <3 coffescript
 		parsedBits.push(@parseLine line) for line in allTheLines;
-
 		return @parseTree parsedBits
 
 	parseTree: (parsedBits) ->
@@ -66,9 +65,7 @@ class Parser
 			b = @findNodeInTree bname, tree;
 
 			# do we need to add the parent block to the tree?
-			if !a
-				a = {name: aname, colour: "", children:[]}
-				tree.children.push a
+			tree.children.push a = {name: aname, colour: "", children:[]} if !a
 
 			# don't panic about self loops
 			continue if aname == bname
@@ -85,8 +82,8 @@ class Parser
 					tree.children[tree.children.indexOf(b)] = null
 
 			# if the colours or arrow have updated, save them
-			if a
-				a.colour = bit.first.colour if bit.first.colour
+			a.colour = bit.first.colour if a && bit.first.colour
+				
 			if b
 				b.colour = bit.second.colour if bit.second.colour
 				b.arrow = bit.arrow if bit.arrow
@@ -237,6 +234,7 @@ class Drawer
 	constructor: (@paper) ->
 		@paper.clear()
 		@rectangleWidth = 100
+		@rectangleMaxWidth = 100
 		@rectangleHeight = 50
 		@childrenVerticalPadding = 40
 		@childrenHorizontalPadding = 20
@@ -277,11 +275,27 @@ class Drawer
 
 		return {rectangle:newRect, svg:actualRect}
 
-	drawText: (x, y, text) ->
-		@paper.text(x, y, text).attr(
+	drawText: (x, y, content) ->
+		maxWidth = @rectangleWidth
+		t = @paper.text(x, y).attr(
 			{"font-size": "13px", 
-			"font-family":"'Shadows Into Light Two', sans-serif"
+			"font-family":"'Shadows Into Light Two', sans-serif",
+			"text-anchor": "center"
 			})
+
+		# thanks stack overflow
+		words = content.split(" ")
+		tempText = ""
+		for word in words
+			t.attr("text", tempText + " " + word)
+			if (t.getBBox().width > maxWidth) 
+				tempText += "\n" + word
+			else 
+				tempText += " " + word
+
+		t.attr("text", tempText.substring(1))
+		  
+		
 
 	drawAndConnectToBlock:(previousBlock, block, childIndex, direction, arrow) ->
 		previousRectangle = previousBlock.rectangle # block also contains the svg, just in case
