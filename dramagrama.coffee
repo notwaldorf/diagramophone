@@ -1,77 +1,46 @@
 class Controller
 	makeItGo: (inputText, paper)->
+		@blocksThatIHaveDrawn = {}
 		@parser = new Parser
 		return unless inputText
-
-		parsedBits = @parser.parse inputText
-		return unless parsedBits
+		
+		blockTree = @parser.parse inputText
+		return unless blockTree
 
 		@drawer = new Drawer(paper)
-
-		@drawBlocks(parsedBits)
-
-	# create a map that holds all the children of each block
-	# we need this so that we can properly space them
-	getAllBlockPairs: (parsedBits) ->
-		allTheBlockPairs = {}
-
-		for bit in parsedBits
-			if bit
-				if allTheBlockPairs[bit.first.name] 
-					allTheBlockPairs[bit.first.name].push bit
-				else
-					allTheBlockPairs[bit.first.name] = [bit]
-
-		return allTheBlockPairs
-
-
-	drawBlocks: (parsedBits) ->
-		blockLinesByParent = @getAllBlockPairs parsedBits
+		@drawBlocks(blockTree)
 	
-		# keep track of all the blocks that we've drawn
-		# so that we can link blocks even if they haven't
-		# been typed in order
-		blocksThatIHaveDrawn = {}
+	drawBlocks: (blockTree) ->
+		@drawRootedBlock block for block in blockTree.children when block
 
-		for parentName, lines of blockLinesByParent
-			# if i've drawn this block before, start from that rectangle
-			numActualChildren = @getNumLinkedChildren lines
-			parentBlock = @getOrDrawParentBlock parentName, lines[0].first, blocksThatIHaveDrawn, numActualChildren
+	drawRootedBlock: (block) ->
+		numActualChildren = @getNumLinkedChildren block.children
 
-			# draw all the connecting children
-			i = 0
-			for line in lines
-				# the parent may be a standalone block and not have any children	
-				if line.second.name != ""
-					childBlock = blocksThatIHaveDrawn[line.second.name]
-					
-					if childBlock
-						@drawer.connectRectangles(parentBlock, childBlock, "down", line.arrow)
-					else
-						childBlock = @drawer.connectToRectangle(parentBlock, line.second, i, "down", line.arrow)
-						blocksThatIHaveDrawn[line.second.name] = childBlock
-					i++
-		return null
+		# if i've drawn this block before, start from that rectangle
+		parentBlock = @blocksThatIHaveDrawn[block.name]
+		if !parentBlock
+			parentBlock = @drawer.drawRectangle(null, block, numActualChildren)
+			@blocksThatIHaveDrawn[block.name] = parentBlock
+
+		# draw all the connecting children
+		i = 0
+		for child in block.children
+			continue unless child
+			childBlock = @blocksThatIHaveDrawn[child.name]
+			# has this child been drawn? if so, let's connect to it
+			if childBlock
+				@drawer.connectExistingBlocks(parentBlock, childBlock, "down", child.arrow )
+			else
+				childBlock = @drawer.connectToRectangle(parentBlock, child, i, "down", child.arrow)
+				@blocksThatIHaveDrawn[child.name] = childBlock
+				@drawRootedBlock child
+				i++
 
 	# get the number of non-standalone children
 	getNumLinkedChildren: (lines) ->
 		total = 0
-		(total = total + 1) for line in lines when line.second.name isnt ""
-
+		(total = total + 1) for line in lines when line
 		return total
-		
-	getOrDrawParentBlock: (parentName, lineBlock, blocksThatIHaveDrawn, numChildren) ->
-		block = blocksThatIHaveDrawn[parentName]
-
-		if block
-			# we may have to update the colour
-			if (lineBlock.colour)
-				block.svg.attr("fill":lineBlock.colour)
-			return block
-		else
-			newBlock = @drawer.drawRectangle(null, lineBlock, numChildren)
-			blocksThatIHaveDrawn[parentName] = newBlock;
-			return newBlock
 
 class Parser
 	constructor: ->
@@ -83,7 +52,63 @@ class Parser
 		# <3 coffescript
 		parsedBits.push(@parseLine line) for line in allTheLines;
 
-		return parsedBits
+		return @parseTree parsedBits
+
+	parseTree: (parsedBits) ->
+		tree = {children: []}
+		
+		for bit in parsedBits
+			continue unless bit
+			aname = bit.first.name
+			bname = bit.second.name
+
+			a = @findNodeInTree aname, tree;
+			b = @findNodeInTree bname, tree;
+
+			# do we need to add the parent block to the tree?
+			if !a
+				a = {name: aname, colour: "", children:[]}
+				tree.children.push a
+
+			# if b doesn't exist, it's easy. just add it and be done
+			if !b and bname != ""
+				b = {name: bname, colour: "", children:[]}
+				a.children.push b
+			else if b
+				a.children.push b
+				# dislodge the first level node if needed
+				if @isFirstLevelNode b, tree
+					# TODO: this is pretty crappy
+					tree.children[tree.children.indexOf(b)] = null
+
+			# if the colours or arrow have updated, save them
+			if a
+				a.colour = bit.first.colour if bit.first.colour
+			if b
+				b.colour = bit.second.colour if bit.second.colour
+				b.arrow = bit.arrow if bit.arrow
+
+		return tree
+
+	findNodeInTree: (findMe, tree) ->
+		return tree if tree.name is findMe
+		
+		# maybe it's one of the children?
+		for child in tree.children
+			continue if !child
+			return child if child.name is findMe
+
+			# maybe it's a grand child?
+			maybeInChild = @findNodeInTree findMe, child
+			return maybeInChild if maybeInChild
+
+		return null
+			
+	isFirstLevelNode: (node, tree) ->
+		for child in tree.children
+			return true if child and child.name == node.name
+		
+		return false
 
 	parseLine: (text) ->
 		return unless text # hey there paranoia
@@ -273,6 +298,12 @@ class Drawer
 		connector = parentBlock.rectangle.getConnectorForDirection direction
 		myConnector = childBlock.rectangle.getConnectorForDirection "up"
 		@drawLine connector, myConnector, arrow
+
+	connectExistingBlocks:(block1, block2, direction, arrow) ->
+		connector1 = block1.rectangle.getConnectorForDirection direction
+		connector2 = block2.rectangle.getConnectorForDirection "up"
+
+		@drawLine connector1, connector2, arrow
 
 	drawLine: (point1, point2, arrow) ->
 		# arrow.direction gives left/right/both. if both, you need to draw both paths
