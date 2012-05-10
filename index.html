@@ -17,8 +17,8 @@
 	<script src="drawer.coffee" type="text/coffeescript"></script>
 	<script src="parser.coffee" type="text/coffeescript"></script>
 	
-	<!--<link href='http://fonts.googleapis.com/css?family=Yanone+Kaffeesatz' rel='stylesheet' type='text/css'>
-	<link href='http://fonts.googleapis.com/css?family=Shadows+Into+Light+Two' rel='stylesheet' type='text/css'>-->
+	<link href='http://fonts.googleapis.com/css?family=Yanone+Kaffeesatz' rel='stylesheet' type='text/css'>
+	<link href='http://fonts.googleapis.com/css?family=Shadows+Into+Light+Two' rel='stylesheet' type='text/css'>
 </head>
 
 <body>
@@ -35,11 +35,16 @@
 	<div class="left-column">
 		<div class="title" style="overflow:hidden">Code your diagram here 
 			<button class="btn btn-primary btn-mini" id="diagramophone" style="float: right">GO</button>
-			<label class="checkbox" style="float: right; margin-right: 20px">
-          		<input type="checkbox" id="repl" checked="true">live updates
-        	</label>
 		</div>	
-		<textarea style="width:390px" id="textarea" rows="20"></textarea>
+		<textarea style="width:390px" id="textarea" rows="17"></textarea>
+
+		<div class="title" style="overflow:hidden">Settings</div>
+		<label class="checkbox">
+          		<input type="checkbox" id="fontBtn" checked="true">use silly handwritten font
+        </label>
+        <label class="checkbox">
+      		<input type="checkbox" id="replBtn" checked="false">live updates -- this will make things slower
+    	</label>
 
 	</div>
 
@@ -80,16 +85,22 @@ block 7 <-> block 8
 
 btn = document.getElementById("diagramophone")
 textarea = document.getElementById("textarea")
-repl = document.getElementById("repl")
+repl = document.getElementById("replBtn")
+fontBtn = document.getElementById("fontBtn")
 
-btn.addEventListener 'click', => @controller.makeItGo(textarea.value, paper)
+btn.addEventListener 'click', => @controller.makeItGo(textarea.value, paper, fontBtn.checked)
+
 textarea.addEventListener 'keyup', => 
 	if (repl.checked)
-		@controller.makeItGo(textarea.value, paper)
+		@controller.makeItGo(textarea.value, paper, fontBtn.checked)
 
+fontBtn.addEventListener 'change', =>
+	@controller.makeItGo(textarea.value, paper, fontBtn.checked)
+
+# initialize the view
 textarea.value = sampleText
-	
-@controller.makeItGo(textarea.value, paper)
+@controller.makeItGo(textarea.value, paper, fontBtn.checked)
+
 
 </script>
 </html>

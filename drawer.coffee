@@ -18,6 +18,10 @@ class window.Drawer
 		@paperWidth = 600
 		@paperHeight = 400
 
+		@textFontName = "Shadows Into Light Two"
+		@textFontSize = "15px"
+
+
 	drawRectangle: (point, block, numChildren) ->
 		if not point # so this is a rooted block we're drawing
 			point = {}
@@ -47,7 +51,7 @@ class window.Drawer
 		@whereTheRightMostBlockEnds = Math.max(@whereTheRightMostBlockEnds, whereThisBlockEndsX)		
 
 		# resize the page to fit this
-		@paperWidth = Math.max(@paperWidth, @whereTheRightMostBlockEnds)
+		@paperWidth = Math.max(@paperWidth, @whereTheRightMostBlockEnds + @childrenHorizontalPadding)
 		@paperHeight = Math.max(@paperHeight, whereThisBlockEndsY + @childrenVerticalPadding)
 		@paper.setSize(@paperWidth, @paperHeight)
 
@@ -58,8 +62,8 @@ class window.Drawer
 
 	drawText: (topX, topY, content) ->
 		t = @paper.text(topX, topY).attr(
-			{"font-size": "13px", 
-			"font-family":"'Shadows Into Light Two', sans-serif",
+			{"font-size": @textFontSize, 
+			"font-family": @textFontName + ", sans-serif",
 			"text-anchor": "middle"
 			})
 		t.attr("text", content)
@@ -129,8 +133,8 @@ class window.Drawer
 		y_mid = point1.y + 20 #point1.y + (point2.y - point1.y)/2
 		x_mid = point1.x + 5 #(point2.x - point1.x)/2 + 5
 		@paper.text(x_mid, y_mid, arrow.message).attr(
-			{"font-size": "12px", 
-			"font-family":"'Shadows Into Light Two', sans-serif",
+			{"font-size": @textFontSize, 
+			"font-family": @textFontName + ", sans-serif",
 			"text-anchor":"start"})
 			
 	drawPath: (point1, point2, head, dash) ->

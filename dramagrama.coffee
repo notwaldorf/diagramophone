@@ -1,13 +1,22 @@
 class window.Controller
-	makeItGo: (inputText, paper)->
+	makeItGo: (inputText, paper, hasSillyFont)->
 		@blocksThatIHaveDrawn = {}
 		@parser = new Parser
+		@drawer = new Drawer(paper)
 		return unless inputText
 		
 		blockTree = @parser.parse inputText
 		return unless blockTree
 
-		@drawer = new Drawer(paper)
+		debugger
+		# some settings
+		if hasSillyFont
+			@drawer.textFontName = "Shadows Into Light Two"
+			@drawer.textFontSize = "14px"
+		else
+			@drawer.textFontName = "Helvetica"
+			@drawer.textFontSize = "12px"
+			
 		@drawBlocks(blockTree)
 	
 	drawBlocks: (blockTree) ->
