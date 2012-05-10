@@ -2,9 +2,9 @@
 <html lang="en">
 <head>
 	<meta charset="utf-8">
-	<title>Dramagrama</title>
-	<meta name="description" content="">
-	<meta name="author" content="">
+	<title>diagramophone</title>
+	<meta name="description" content="diagrams for all">
+	<meta name="author" content="Monica Dinculescu">
 
 	<!-- prettify things -->
 	<link href="lib/bootstrap.min.css" rel="stylesheet">
@@ -48,14 +48,29 @@
 		</div>	
 		<textarea style="width:390px" id="textarea" rows="17"></textarea>
 
-		<div class="title" style="overflow:hidden">Settings</div>
+		<br/>
+		<div class="title">Settings</div>
 		<label class="checkbox">
           		<input type="checkbox" id="fontBtn" checked="true">use silly handwritten font
         </label>
         <label class="checkbox">
       		<input type="checkbox" id="replBtn" checked="false">live updates -- this will make things slower
     	</label>
-
+    	<br/>
+    	<div class="title">Remind me about my options?</div>
+    	<div class="well">
+    		<p class="code comment">// no arrow</p>
+    		<p class="code">a -- b</p>
+    		<p class="code">a .. b</p>
+    		<p class="code comment">// arrows (and in the other direction)</p>
+    		<p class="code">a -&gt; b</p>
+    		<p class="code">a ..&gt; b</p>
+    		<p class="code comment">// diamonds (or in both directions)</p>
+    		<p class="code">a -&lt;&gt; b</p>
+    		<p class="code">a ..&lt;&gt; b</p>
+    		<p class="code comment">// colours and messages</p>
+    		<p class="code">a {red} .. b {#ffb700} : o hai arrow!</p>
+    	</div>
 	</div>
 
 	<div class="right-column">
