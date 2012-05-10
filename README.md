@@ -61,6 +61,6 @@ And that we call "open issues", are pretty annoying, and I'm working on fixing:
 
 * parent blocks are not centered above their children, which can lead to some nauseating arrow zig-zags
 * exporting the svg to a png loses the arrow heads and the dotted lines; don't ask me why
-* the REPL get's very slow if you have a ton of blocks. This is because it's a dumb REPL, and on keyup redraws the entire diagram.
+* the REPL gets very slow if you have a ton of blocks. This is because it's a dumb REPL, and on keyup redraws the entire diagram.
 
 
