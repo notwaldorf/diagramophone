@@ -8,7 +8,6 @@ class window.Controller
 		blockTree = @parser.parse inputText
 		return unless blockTree
 
-		debugger
 		# some settings
 		if hasSillyFont
 			@drawer.textFontName = "Shadows Into Light Two"
@@ -19,6 +18,18 @@ class window.Controller
 			
 		@drawBlocks(blockTree)
 	
+	saveAllTheThings: (raphaelCanvas) ->
+		# strips off all spaces between tags
+		svgImage = raphaelCanvas.innerHTML.replace(/>\s+/g, ">").replace(/\s+</g, "<")
+
+		# create a temp canvas and load the svg in it
+		# TODO: this loses arrows somewhere
+		canvas = document.createElement("canvas")
+		canvg(canvas, svgImage, {ignoreMouse: true, ignoreAnimation: true})
+		img = canvas.toDataURL("image/png")
+		window.open(img, "_blank")
+         
+
 	drawBlocks: (blockTree) ->
 		@drawRootedBlock block for block in blockTree.children when block
 
