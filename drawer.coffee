@@ -18,6 +18,7 @@ class window.Drawer
 		@paperWidth = 600
 		@paperHeight = 400
 
+		# customizable settings
 		@textFontName = "Shadows Into Light Two"
 		@textFontSize = "15px"
 
@@ -71,7 +72,7 @@ class window.Drawer
 		textWidth = Math.max(t.getBBox().width, @rectangleWidth)
 		textHeight = Math.max(t.getBBox().height, @rectangleHeight)
 
-		# if it doesn't fit in amax width box, split it into words and wrap them around
+		# if it doesn't fit in a max width box, split it into words and wrap them around
 		if (textWidth > @rectangleMaxWidth)
 			t.attr("text", "")
 			words = content.split(" ")
@@ -90,7 +91,7 @@ class window.Drawer
 			textWidth = Math.max(t.getBBox().width, @rectangleWidth)
 			textHeight = Math.max(t.getBBox().height, @rectangleHeight)
 
-		# we know we're going to put this on a rectangle of that size, so let's center the text in it
+		# we know we're going to put this on a rectangle of that size (+padding), so let's center the text in it
 		t.attr(
 			{"x": topX + (textWidth+@rectangleTextPadding)/2, 
 			"y": topY + textHeight/2
@@ -107,9 +108,9 @@ class window.Drawer
 		drawn = @drawRectangle topPoint, block, 0
 
 		# arrow
-		connector = previousRectangle.getConnectorForDirection direction
-		myConnector = drawn.rectangle.getConnectorForDirection "up"
-		@drawLine connector, myConnector, arrow
+		parentConnectr = previousRectangle.getConnectorForDirection direction
+		childConnector = drawn.rectangle.getConnectorForDirection "up"
+		@drawLine parentConnector, childConnector, arrow
 
 		return drawn
 		
