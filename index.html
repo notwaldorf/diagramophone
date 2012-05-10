@@ -109,6 +109,12 @@ block 8 {#1085DC}
 block 7 <-> block 8
 """
 
+$listen = (target, name, callback) ->
+	if target.addEventListener
+		target.addEventListener name, callback, false
+	else
+		target.attachEvent "on#{name}", callback
+
 goBtn = document.getElementById("diagramophone")
 textarea = document.getElementById("textarea")
 repl = document.getElementById("replBtn")
@@ -116,14 +122,14 @@ fontBtn = document.getElementById("fontBtn")
 saveBtn = document.getElementById("saveIt")
 raphaelCanvas = document.getElementById("canvas")
 
-goBtn.addEventListener 'click', => @controller.makeItGo(textarea.value, paper, fontBtn.checked)
-saveBtn.addEventListener 'click', => @controller.saveAllTheThings(raphaelCanvas)
+$listen goBtn, 'click', => @controller.makeItGo(textarea.value, paper, fontBtn.checked)
+$listen saveBtn, 'click', => @controller.saveAllTheThings(raphaelCanvas)
 
-textarea.addEventListener 'keyup', => 
+$listen textarea, 'keyup', => 
 	if (repl.checked)
 		@controller.makeItGo(textarea.value, paper, fontBtn.checked)
 
-fontBtn.addEventListener 'change', =>
+$listen fontBtn, 'change', =>
 	@controller.makeItGo(textarea.value, paper, fontBtn.checked)
 
 # initialize the view
