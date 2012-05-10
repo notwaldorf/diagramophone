@@ -23,7 +23,8 @@ class window.Controller
 			@blocksThatIHaveDrawn[block.name] = parentBlock
 
 		# draw all the connecting children
-		i = 0
+		previousChildEndX = 0
+		drawnChildren = 0
 		for child in block.children
 			continue unless child
 			childBlock = @blocksThatIHaveDrawn[child.name]
@@ -31,13 +32,24 @@ class window.Controller
 			if childBlock
 				@drawer.connectExistingBlocks(parentBlock, childBlock, "down", child.arrow )
 			else
-				childBlock = @drawer.drawAndConnectToBlock(parentBlock, child, i, "down", child.arrow)
+				childBlock = @drawer.drawAndConnectToBlock(parentBlock, child, previousChildEndX, "down", child.arrow)
+				previousChildEndX = childBlock.rectangle.top.x + childBlock.rectangle.width
 				@blocksThatIHaveDrawn[child.name] = childBlock
 				@drawRootedBlock child
-				i++
+				drawnChildren++
+
+		return unless drawnChildren > 1
+		
+		# now that we've drawn all the children, recenter the parent above them
+		#newCenter = (previousChildEndX - parentBlock.rectangle.width)/2
+		#if (newCenter > 0)
+		#		@drawer.repositionBlock(parentBlock, newCenter)
+
 
 	# get the number of non-standalone children
 	getNumLinkedChildren: (lines) ->
 		total = 0
 		(total = total + 1) for line in lines when line
 		return total
+
+
