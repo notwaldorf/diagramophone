@@ -95,10 +95,8 @@ class window.Drawer
 		
 
 	drawAndConnectToBlock:(previousBlock, block, previousChildEndX, direction, arrow) ->
-		debugger
 		previousRectangle = previousBlock.rectangle
-
-		x = previousRectangle.top.x + previousChildEndX
+		x = if previousChildEndX then (previousChildEndX + @childrenHorizontalPadding) else previousRectangle.top.x
 		y = previousRectangle.top.y + previousRectangle.height + @childrenVerticalPadding
 		topPoint = new Point x, y
 
