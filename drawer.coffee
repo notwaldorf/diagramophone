@@ -108,7 +108,7 @@ class window.Drawer
 		drawn = @drawRectangle topPoint, block, 0
 
 		# arrow
-		parentConnectr = previousRectangle.getConnectorForDirection direction
+		parentConnector = previousRectangle.getConnectorForDirection direction
 		childConnector = drawn.rectangle.getConnectorForDirection "up"
 		@drawLine parentConnector, childConnector, arrow
 
@@ -139,7 +139,7 @@ class window.Drawer
 			"text-anchor":"start"})
 			
 	drawPath: (point1, point2, head, dash) ->
-		@paper.path("M{0},{1}L{2},{3}Z", point1.x, point1.y, point2.x, point2.y)
+		@paper.path("M{0},{1}L{2},{3}", point1.x, point1.y, point2.x, point2.y)
 		.attr({"stroke-dasharray": dash, "stroke-width": 2, "arrow-end":head + "-wide-long"})
 
 	repositionBlock: (block, newX) ->
