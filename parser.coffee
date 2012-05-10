@@ -6,7 +6,7 @@ class window.Parser
 		parsedBits = []
 
 		# <3 coffescript
-		parsedBits.push(@parseLine line) for line in allTheLines;
+		parsedBits.push(@parseLine line) for line in allTheLines
 		return @parseTree parsedBits
 
 	parseTree: (parsedBits) ->
@@ -17,8 +17,8 @@ class window.Parser
 			aname = bit.first.name
 			bname = bit.second.name
 
-			a = @findNodeInTree aname, tree;
-			b = @findNodeInTree bname, tree;
+			a = @findNodeInTree aname, tree
+			b = @findNodeInTree bname, tree
 
 			# do we need to add the parent block to the tree?
 			tree.children.push a = {name: aname, colour: "", children:[]} if !a
@@ -176,7 +176,7 @@ class window.Parser
 		# direction: left, right, both
 		# here we're assuming that botht he diamond and the arrow end in a >
 		if text[0] == "<" and text[text.length-1] == ">"
-			direction = "both";
+			direction = "both"
 		else if text[0] == "<"
 			direction = "left"
 		else if text[text.length-1] == ">"
