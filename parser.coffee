@@ -133,7 +133,8 @@ class window.Parser
 
 	extractNamesAndArrow: (text) ->
 		doubleArrow = ///(.*)(<>-<>|<->|<-<>|<>->|<>\.\.<>|<\.\.>|<\.\.<>|<>\.\.>)(.*)///
-		singleArrow = ///(.*)(--|-\.-|->|\.\.>|-<>|\.\.<>|<-|<\.\.|<>-|<>\.\.)(.*)///
+		singleArrow = ///(.*)(->|\.\.>|-<>|\.\.<>|<-|<\.\.|<>-|<>\.\.)(.*)///
+		noArrow = ///(.*)(--|\.\.|-\.-)(.*)///
 		# first try to match the double arrow. if that works, then you've hit jackpot
 		# if that doesn't match, then go for the single arrow
 		# if i join these in one massive regexp, sanity breaks and i'm not debugging regexps.		
@@ -144,7 +145,11 @@ class window.Parser
 			try
 				[first, arrow, second] = text.match(singleArrow)[1..3]
 			catch e2
-				return null
+				# didn't match a single arrow. no arrows at all?
+				try
+					[first, arrow, second] = text.match(noArrow)[1..3]
+				catch e3
+					return null
 		
 		return {names:{first:first.trim(), second:second.trim()}, arrow:@extractArrow(arrow)}
 	

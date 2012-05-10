@@ -11,7 +11,7 @@ It's written in [CoffeeScript](http://jashkenas.github.com/coffee-script/), and 
 You can connect blocks through lines (solid and dotted)
 ```
 a -- b
-a -.- b
+a .. b
 ```
 
 On which you can use connectors (arrows and diamonds)
