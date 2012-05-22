@@ -3,6 +3,7 @@
 This is a little app that lets you write diagrams in a simple DSL, because I hate dragging and dropping things and hoping they snap-to-grid. Which they never do.
 
 It's written in [CoffeeScript](http://jashkenas.github.com/coffee-script/), and uses [Raphael.js](http://raphaeljs.com/) to draw things. It uses other things too, including your kitchen sink.
+It's not done yet, so some features will work like crazy monkeys.
 
 ## Things that work
 
