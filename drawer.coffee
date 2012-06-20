@@ -1,7 +1,15 @@
 class window.Drawer
+
+	##############################
+	#	Initialize ALL the things
+	##############################
+
 	constructor: (@paper) ->
 		@paper.clear()
 
+		# where to start drawing
+		@startPoint = new Point 10, 10
+		
 		# standard rectangle sizes
 		@rectangleWidth = 100
 		@rectangleMaxWidth = 200
@@ -23,18 +31,20 @@ class window.Drawer
 		@textFontSize = "15px"
 
 
-	drawRectangle: (point, block, numChildren) ->
-		if not point # so this is a rooted block we're drawing
-			point = {}
-			point.x = @whereTheRightMostBlockEnds + @childrenHorizontalPadding
-			point.y = 10
-	
+	#################################
+	#	Positioning things correctly
+	#################################
+	drawUnpositionedBlock: (block) ->
+		point = {}
+		point.x = 0
+		point.y = 0
+
 		# first draw the text and the fake rectangle. we'll resize it in a bit
 		# this is so that the text "sits" on top of the rectangle. otherwise it gets opaqued as well. sigh.
 		fillColour = block.colour || "white"
 		actualRect = @paper.rect(point.x, point.y, 10, 10)
 		actualRect.attr({"fill":fillColour, "fill-opacity": "0.8", "stroke-width": 1})
-		drawnText = @drawText(point.x, point.y, block.name)	
+		drawnText = @drawAndWrapText(point.x, point.y, block.name)	
 
 		newBlockWidth = drawnText.textWidth + @rectangleTextPadding
 		newBlockHeight = drawnText.textHeight
@@ -45,23 +55,40 @@ class window.Drawer
 			"height":newBlockHeight
 			})
 		
-		# now, update the starting point for the next rooted block
-		# = max (where it was, where this block ends)
-		whereThisBlockEndsX = point.x + newBlockWidth
-		whereThisBlockEndsY = point.y + newBlockHeight
-		@whereTheRightMostBlockEnds = Math.max(@whereTheRightMostBlockEnds, whereThisBlockEndsX)		
+		# and now return this beast for safe keeps
+		block.width = newBlockWidth
+		block.height = newBlockHeight
+		block.textHeight = drawnText.textHeight
+		block.textWidth = drawnText.textWidth
+		block.drawn = {rect: actualRect, text:drawnText.t}
+
+	positionBlock: (block, where) ->
+		block.drawn.rect.attr(
+			{"x":where.x, 
+			"y":where.y
+			})
+		block.top = where
+		@positionText(block.drawn.text, block.textWidth, block.textHeight, where)
 
 		# resize the page to fit this
+		whereThisBlockEndsX = where.x + block.width
+		whereThisBlockEndsY = where.y + block.height
+		@whereTheRightMostBlockEnds = Math.max(@whereTheRightMostBlockEnds, whereThisBlockEndsX)		
+
 		@paperWidth = Math.max(@paperWidth, @whereTheRightMostBlockEnds + @childrenHorizontalPadding)
 		@paperHeight = Math.max(@paperHeight, whereThisBlockEndsY + @childrenVerticalPadding)
 		@paper.setSize(@paperWidth, @paperHeight)
+		
+	positionText: (textObj, textWidth, textHeight, blockTopPoint) ->
+		textObj.attr(
+			{"x": blockTopPoint.x + (textWidth+@rectangleTextPadding)/2, 
+			"y": blockTopPoint.y + textHeight/2
+			})
 
-		# and now return this beast for safe keeps
-		clonedPoint = new Point point.x,point.y
-		newRect = new Rectangle clonedPoint, newBlockWidth, newBlockHeight
-		return {rectangle:newRect, svg:actualRect, text:drawnText.t }
-
-	drawText: (topX, topY, content) ->
+	##############################
+	#	Drawing Basic Shapes
+	##############################
+	drawAndWrapText: (topX, topY, content) ->
 		t = @paper.text(topX, topY).attr(
 			{"font-size": @textFontSize, 
 			"font-family": @textFontName + ", sans-serif",
@@ -92,33 +119,17 @@ class window.Drawer
 			textHeight = Math.max(t.getBBox().height, @rectangleHeight)
 
 		# we know we're going to put this on a rectangle of that size (+padding), so let's center the text in it
-		t.attr(
-			{"x": topX + (textWidth+@rectangleTextPadding)/2, 
-			"y": topY + textHeight/2
-			})
+		@positionText(t, textWidth, textHeight, new Point(topX, topY))
 		return {t, textWidth, textHeight}		  
-		
 
-	drawAndConnectToBlock:(previousBlock, block, previousChildEndX, direction, arrow) ->
-		previousRectangle = previousBlock.rectangle
-		x = if previousChildEndX then (previousChildEndX + @childrenHorizontalPadding) else previousRectangle.top.x
-		y = previousRectangle.top.y + previousRectangle.height + @childrenVerticalPadding
-		topPoint = new Point x, y
+	connectExistingBlocks:(parent, child, direction, arrow) ->
+		parentRectangle = new Rectangle parent.top, parent.width, parent.height
+		childRectangle = new Rectangle child.top, child.width, child.height
 
-		drawn = @drawRectangle topPoint, block, 0
+		parentConnectorHook = parentRectangle.getConnectorForDirection direction
+		childConnectorHook = childRectangle.getConnectorForDirection "up"
 
-		# arrow
-		parentConnector = previousRectangle.getConnectorForDirection direction
-		childConnector = drawn.rectangle.getConnectorForDirection "up"
-		@drawLine parentConnector, childConnector, arrow
-
-		return drawn
-		
-	connectExistingBlocks:(block1, block2, direction, arrow) ->
-		connector1 = block1.rectangle.getConnectorForDirection direction
-		connector2 = block2.rectangle.getConnectorForDirection "up"
-
-		@drawLine connector1, connector2, arrow
+		@drawLine parentConnectorHook, childConnectorHook, arrow
 
 	drawLine: (point1, point2, arrow) ->
 		# arrow.direction gives left/right/both. if both, you need to draw both paths
@@ -142,9 +153,9 @@ class window.Drawer
 		@paper.path("M{0},{1}L{2},{3}", point1.x, point1.y, point2.x, point2.y)
 		.attr({"stroke-dasharray": dash, "stroke-width": 2, "arrow-end":head + "-wide-long"})
 
-	repositionBlock: (block, newX) ->
-		block.svg.attr("x" : newX)
-		block.text.attr("x" : newX)
+##############################
+#	Classes that want to help
+##############################
 
 class window.Rectangle
 	constructor: (@top, @width, @height) ->
@@ -158,4 +169,7 @@ class window.Rectangle
 
 class window.Point
 	constructor: (@x, @y) ->
+
+	clone: (otherPoint) ->
+		newPoint = new Point(otherPoint.x, otherPoint.y)
 
