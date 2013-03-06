@@ -126,8 +126,14 @@ class window.Drawer
 		parentRectangle = new Rectangle parent.top, parent.width, parent.height
 		childRectangle = new Rectangle child.top, child.width, child.height
 
-		parentConnectorHook = parentRectangle.getConnectorForDirection direction
-		childConnectorHook = childRectangle.getConnectorForDirection "up"
+		# if the parent is physically above the child, then parent.top.y > child.top.y
+		# if this isn't the case, then we need to connect the parent top to the child bottom
+		if (parent.top.y < child.top.y)
+			parentConnectorHook = parentRectangle.getConnectorForDirection direction
+			childConnectorHook = childRectangle.getConnectorForDirection "up"
+		else 
+			parentConnectorHook = parentRectangle.getConnectorForDirection "up"
+			childConnectorHook = childRectangle.getConnectorForDirection "down"
 
 		@drawLine parentConnectorHook, childConnectorHook, arrow
 
