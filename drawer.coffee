@@ -128,7 +128,7 @@ class window.Drawer
 
 		# if the parent is physically above the child, then parent.top.y > child.top.y
 		# if this isn't the case, then we need to connect the parent top to the child bottom
-		if (parent.top.y < child.top.y)
+		if (parent.top.y <= child.top.y)
 			parentConnectorHook = parentRectangle.getConnectorForDirection direction
 			childConnectorHook = childRectangle.getConnectorForDirection "up"
 		else 
